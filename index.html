@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Zilker Soccer Strategy</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1a2e; }
+    #app { position: relative; width: 100%; height: 100%; }
+    #game-container { position: absolute; inset: 0; }
+    canvas { display: block; }
+    #sidebar {
+      position: fixed; top: 0; left: 0; width: 220px; height: 100%; z-index: 100;
+      background: #16213e; color: #e0e0e0;
+      font-family: 'Segoe UI', Arial, sans-serif; display: flex; flex-direction: column;
+      padding: 12px; overflow-y: auto;
+      transform: translateX(-100%); transition: transform 0.3s ease;
+    }
+    #sidebar.open { transform: translateX(0); }
+    #sidebar h1 { font-size: 16px; margin-bottom: 4px; color: #f0c040; }
+    #sidebar h2 { font-size: 11px; font-weight: normal; color: #8899aa; margin-bottom: 16px; }
+    #sidebar .play-btn {
+      display: block; width: 100%; padding: 10px 8px; margin-bottom: 6px;
+      background: #1a3355; color: #d0d8e8; border: 1px solid #2a4a7a;
+      border-radius: 6px; cursor: pointer; font-size: 13px; text-align: left;
+    }
+    #sidebar .play-btn:hover { background: #2a4a7a; }
+    #sidebar .play-btn.active { background: #f0c040; color: #1a1a2e; border-color: #f0c040; font-weight: bold; }
+    #sidebar .step-label { font-size: 11px; color: #8899aa; text-align: center; margin-top: 16px; padding-top: 12px; border-top: 1px solid #2a4a7a; }
+    #controls-overlay {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+      background: rgba(22, 33, 62, 0.88);
+      padding: 8px 12px;
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    #controls-overlay label { font-size: 12px; color: #d0d8e8; white-space: nowrap; }
+    #controls-overlay input[type="range"] { flex: 1; min-width: 60px; max-width: 180px; height: 20px; }
+    #controls-overlay .btn-row { display: flex; gap: 6px; }
+    #controls-overlay button {
+      padding: 6px 12px; border: 1px solid #2a4a7a; border-radius: 4px;
+      background: #1a3355; color: #d0d8e8; cursor: pointer; font-size: 12px; white-space: nowrap;
+    }
+    #controls-overlay button:hover { background: #2a4a7a; }
+    #menu-toggle {
+      position: fixed; top: 8px; left: 8px; z-index: 200;
+      width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.5); color: #fff; border: none; border-radius: 6px;
+      cursor: pointer; font-size: 22px; line-height: 1;
+    }
+    #menu-toggle:hover { background: rgba(0,0,0,0.7); }
+    #menu-toggle.hidden { display: none; }
+    #backdrop {
+      position: fixed; inset: 0; z-index: 90;
+      background: rgba(0,0,0,0.5);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    #backdrop.open { opacity: 1; pointer-events: auto; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <button id="menu-toggle" aria-label="Toggle menu">☰</button>
+    <div id="backdrop"></div>
+    <div id="sidebar">
+      <h1>Zilker Soccer</h1>
+      <h2>Strategy Animator</h2>
+      <div id="playlist"></div>
+      <div class="step-label" id="step-label">Ready</div>
+    </div>
+    <div id="game-container"></div>
+    <div id="controls-overlay">
+      <label>Speed: <span id="speed-label">1.0x</span></label>
+      <input type="range" id="speed-slider" min="0.25" max="3.0" step="0.25" value="1.0" />
+      <div class="btn-row">
+        <button id="btn-play">&#9654; Play</button>
+        <button id="btn-restart">&#10227; Restart</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('backdrop');
+    const toggle = document.getElementById('menu-toggle');
+
+    function openMenu() {
+      sidebar.classList.add('open');
+      backdrop.classList.add('open');
+      toggle.classList.add('hidden');
+    }
+    function closeMenu() {
+      sidebar.classList.remove('open');
+      backdrop.classList.remove('open');
+      toggle.classList.remove('hidden');
+    }
+
+    toggle.addEventListener('click', () => {
+      sidebar.classList.contains('open') ? closeMenu() : openMenu();
+    });
+    backdrop.addEventListener('click', closeMenu);
+
+    document.querySelectorAll('#sidebar button, #sidebar .play-btn').forEach(btn => {
+      btn.addEventListener('click', closeMenu);
+    });
+
+    if (window.innerWidth >= 768) openMenu();
+  </script>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
