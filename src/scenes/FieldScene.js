@@ -66,11 +66,19 @@ export default class FieldScene extends Phaser.Scene {
 
     g.lineStyle(2 * scale, LINE, 0.6);
     const arcR = FIELD.PENALTY_ARC_RADIUS * scale;
+    const pSpot = FIELD.PENALTY_SPOT_DIST * scale;
+    const pEdge = paW;
+    const dy = pEdge - pSpot;
+    const halfW = Math.sqrt(arcR * arcR - dy * dy);
+    const a1 = Math.atan2(dy, halfW);
+    const a2 = Math.atan2(dy, -halfW);
+    const topArcY = oy + pSpot;
+    const botArcY = oy + fh - pSpot;
     g.beginPath();
-    g.arc(cx, oy + paW, arcR, Phaser.Math.DegToRad(225), Phaser.Math.DegToRad(315), false);
+    g.arc(cx, topArcY, arcR, a1, a2, false);
     g.strokePath();
     g.beginPath();
-    g.arc(cx, oy + fh - paW, arcR, Phaser.Math.DegToRad(45), Phaser.Math.DegToRad(135), false);
+    g.arc(cx, botArcY, arcR, -a2, -a1, false);
     g.strokePath();
 
     const goalW = FIELD.GOAL_WIDTH * scale;
