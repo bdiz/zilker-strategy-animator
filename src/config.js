@@ -47,9 +47,14 @@ export function setLayout(layout) {
 export function computeLayout(canvasW, canvasH) {
   const fw = FIELD.WIDTH;
   const fh = FIELD.HEIGHT;
-  const scale = Math.min(canvasW / fw, canvasH / fh);
+  const gd = FIELD.GOAL_DEPTH;
+  const overlayPad = 60;
+  const visH = canvasH - overlayPad;
+  const margin = gd + 8;
+  const effH = fh + margin * 2;
+  const scale = Math.min(canvasW / fw, visH / effH);
   const offsetX = (canvasW - fw * scale) / 2;
-  const offsetY = (canvasH - fh * scale) / 2;
+  const offsetY = (visH - fh * scale) / 2;
   return { scale, offsetX, offsetY, canvasW, canvasH };
 }
 
