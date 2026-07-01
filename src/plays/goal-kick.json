@@ -1,0 +1,53 @@
+{
+  "name": "Goal Kick Build-Up",
+  "description": "CDM takes goal kick short to LB → carries up → plays to LM → switches to RM",
+  "commands": [
+    [
+      { "action": "setFormation", "name": "goalKick" },
+      { "action": "placeBall", "at": { "x": 170, "y": 470 } }
+    ],
+    [
+      { "action": "walk", "player": "CDM", "path": [
+        { "x": 160, "y": 440 }
+      ], "duration": 800 },
+      { "action": "run", "player": "LB", "path": [
+        { "x": 80, "y": 360 }
+      ], "duration": 800 }
+    ],
+    [
+      { "action": "pass", "from": "CDM", "to": "LB", "duration": 600 }
+    ],
+    [
+      { "action": "dribble", "player": "LB", "path": [
+        { "x": 80, "y": 320 },
+        { "x": 85, "y": 270 },
+        { "x": 95, "y": 220 }
+      ], "duration": 2200 },
+      { "action": "run", "player": "CDM", "path": [
+        { "x": 150, "y": 300 },
+        { "x": 170, "y": 250 }
+      ], "duration": 2200 },
+      { "action": "run", "player": "LM", "path": [
+        { "x": 120, "y": 200 }
+      ], "duration": 1400 }
+    ],
+    [
+      { "action": "pass", "from": "LB", "to": "LM", "duration": 600 }
+    ],
+    [
+      { "action": "dribble", "player": "LM", "path": [
+        { "x": 140, "y": 190 },
+        { "x": 170, "y": 180 }
+      ], "duration": 1500 }
+    ],
+    [
+      { "action": "pass", "from": "LM", "to": "RM", "duration": 800 }
+    ],
+    [
+      { "action": "dribble", "player": "RM", "path": [
+        { "x": 250, "y": 200 },
+        { "x": 260, "y": 230 }
+      ], "duration": 1200 }
+    ]
+  ]
+}

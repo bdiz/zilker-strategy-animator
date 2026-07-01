@@ -22,35 +22,11 @@ export const PLAYER_NAMES = {
 
 export const PLAYER_IDS = ["GK", "CDM", "LB", "RB", "LM", "RM", "FWD"];
 
-export const FORMATIONS = {
-  diamond: {
-    GK:  { x: 170, y: 480 },
-    CDM: { x: 170, y: 310 },
-    LB:  { x: 60, y: 350 },
-    RB:  { x: 280, y: 350 },
-    LM:  { x: 85, y: 210 },
-    RM:  { x: 255, y: 210 },
-    FWD: { x: 170, y: 100 },
-  },
-  goalKick: {
-    GK:  { x: 170, y: 480 },
-    CDM: { x: 170, y: 450 },
-    LB:  { x: 70, y: 390 },
-    RB:  { x: 270, y: 390 },
-    LM:  { x: 110, y: 270 },
-    RM:  { x: 230, y: 270 },
-    FWD: { x: 170, y: 160 },
-  },
-  kickoff: {
-    GK:  { x: 170, y: 480 },
-    CDM: { x: 120, y: 310 },
-    LB:  { x: 70, y: 370 },
-    RB:  { x: 270, y: 370 },
-    LM:  { x: 100, y: 220 },
-    RM:  { x: 240, y: 220 },
-    FWD: { x: 220, y: 100 },
-  },
-};
+import diamond from './formations/diamond.json';
+import goalKick from './formations/goalKick.json';
+import kickoff from './formations/kickoff.json';
+
+export const FORMATIONS = { diamond, goalKick, kickoff };
 
 export const PLAYER_RADIUS = 16;
 export const BALL_RADIUS = 15;
