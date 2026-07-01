@@ -17,7 +17,14 @@ export default class Ball extends Phaser.GameObjects.Container {
   setSizeFromLayout() {
     const layout = getLayout() || { scale: 1 };
     const diameter = Math.max(1, BALL_RADIUS * 2 * layout.scale);
-    this.sprite.setDisplaySize(diameter, diameter);
+    const source = this.sprite.texture.source[0];
+    const w = source ? source.width : this.sprite.width;
+    const h = source ? source.height : this.sprite.height;
+    const size = Math.min(w, h);
+    const cx = w / 2;
+    const cy = h / 2;
+    this.sprite.setCrop(cx - size / 2, cy - size / 2, size, size);
+    this.sprite.setDisplaySize(diameter, diameter * 0.8);
   }
 
   attachTo(player) {
