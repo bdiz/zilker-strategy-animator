@@ -7,7 +7,7 @@ export default class Player extends Phaser.GameObjects.Container {
     this.playerId = id;
 
     this.sprite = scene.add.image(0, 0, "smiley");
-    this.sprite.setScale(0.85);
+    this.sprite.setScale(0.75);
 
     this.label = scene.add.text(0, 22, id, {
       fontFamily: "Arial, sans-serif",

@@ -61,7 +61,7 @@ export default class FieldScene extends Phaser.Scene {
     const pSpotY = oy + FIELD.PENALTY_SPOT_DIST * scale;
     g.fillStyle(LINE, 1);
     g.fillCircle(cx, pSpotY, FIELD.CENTER_SPOT_RADIUS * scale);
-    g.fillCircle(cx, oy + fh - pSpotY, FIELD.CENTER_SPOT_RADIUS * scale);
+    g.fillCircle(cx, oy + fh - FIELD.PENALTY_SPOT_DIST * scale, FIELD.CENTER_SPOT_RADIUS * scale);
     g.fillStyle(GRASS, 1);
 
     g.lineStyle(2 * scale, LINE, 0.6);

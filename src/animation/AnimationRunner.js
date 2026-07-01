@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { FORMATIONS, getLayout, toScreen } from "../config.js";
+import { FORMATIONS, PLAYER_RADIUS, getLayout, toScreen } from "../config.js";
 
 const LINE_COLOR = 0xffffff;
 const LINE_ALPHA = 0.6;
@@ -133,11 +133,14 @@ export default class AnimationRunner {
 
     this.ball.detach();
 
+    const layout = getLayout() || { scale: 1 };
+    const offset = PLAYER_RADIUS * 0.8 * layout.scale;
+
     const duration = (cmd.duration || 600) / this.speed;
-    const startX = from.x;
-    const startY = from.y;
-    const endX = to.x;
-    const endY = to.y;
+    const startX = this.ball.x;
+    const startY = this.ball.y;
+    const endX = to.x + offset;
+    const endY = to.y + offset;
 
     const midX = (startX + endX) / 2;
     const midY = (startY + endY) / 2 - 40;
