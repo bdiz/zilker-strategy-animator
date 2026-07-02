@@ -46,12 +46,12 @@ Each play has `name`, `description`, and `commands` — an **array of arrays** (
 commands: [
   // Group 1 — runs in parallel
   [
-    { action: "pass", from: "CDM", to: "LM", duration: 800 },
+    { action: "pass", from: "CM", to: "LM", duration: 800 },
   ],
   // Group 2 — runs after group 1 completes
   [
     { action: "run", player: "LM", path: [{ x: 120, y: 220 }] },
-    { action: "run", player: "CDM", path: [{ x: 130, y: 270 }, { x: 65, y: 170 }] },
+    { action: "run", player: "CM", path: [{ x: 130, y: 270 }, { x: 65, y: 170 }] },
   ],
 ]
 ```
@@ -75,7 +75,7 @@ Defined in `config.js`. Current presets: `diamond`, `goalKick`, `kickoff`.
 
 ## Players
 
-7 players: `GK`, `CDM`, `LB`, `RB`, `LM`, `RM`, `FWD`. All smiley faces with text labels. Ball follows dribbling player via `attachTo()/detach()`.
+7 players: `GK`, `CM`, `LB`, `RB`, `LM`, `RM`, `FWD`. All smiley faces with text labels. Ball follows dribbling player via `attachTo()/detach()`.
 
 ## Controls
 
