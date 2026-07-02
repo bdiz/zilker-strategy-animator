@@ -8,7 +8,8 @@ export default class PlayControls {
 
     this.playlistEl = document.getElementById("playlist");
     this.playIcon = document.getElementById("play-icon");
-    this.speedSelect = document.getElementById("speed-select");
+    this.speedTrigger = document.getElementById("speed-trigger");
+    this.speedOptions = document.getElementById("speed-options");
     this.stepLabel = document.getElementById("step-label");
     this.progressSlider = document.getElementById("progress-slider");
     this.progressLabel = document.getElementById("progress-label");
@@ -64,9 +65,24 @@ export default class PlayControls {
       }
     });
 
-    this.speedSelect.addEventListener("change", () => {
-      const val = parseFloat(this.speedSelect.value);
-      this.scene.setSpeed(val);
+    this.speedTrigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.speedOptions.classList.toggle("open");
+    });
+
+    this.speedOptions.querySelectorAll("button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const val = parseFloat(btn.dataset.value);
+        this.speedTrigger.textContent = btn.textContent;
+        this.speedOptions.querySelectorAll("button").forEach((b) => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        this.speedOptions.classList.remove("open");
+        this.scene.setSpeed(val);
+      });
+    });
+
+    document.addEventListener("click", () => {
+      this.speedOptions.classList.remove("open");
     });
 
     this.progressSlider.addEventListener("input", () => {
