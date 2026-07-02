@@ -37,13 +37,34 @@
     }
     #controls-overlay label { font-size: 12px; color: #d0d8e8; white-space: nowrap; }
     #controls-overlay input[type="range"] { flex: 1; min-width: 60px; max-width: 180px; height: 20px; }
-    #controls-overlay select {
+    #controls-overlay .speed-select { position: relative; }
+    #controls-overlay .speed-select-btn {
       padding: 4px 6px; border: 1px solid #2a4a7a; border-radius: 4px;
       background: #1a3355; color: #d0d8e8; cursor: pointer; font-size: 12px;
+      min-width: 60px; text-align: center;
     }
+    #controls-overlay .speed-select-btn:hover { background: #2a4a7a; }
+    #controls-overlay .speed-select-btn::after {
+      content: " \25BE"; font-size: 10px;
+    }
+    #controls-overlay .speed-select-list {
+      position: fixed; z-index: 300;
+      list-style: none; margin: 0; padding: 0;
+      background: #1a3355; border: 1px solid #2a4a7a; border-radius: 4px;
+      overflow-y: auto; max-height: 240px;
+      display: none; min-width: 70px;
+    }
+    #controls-overlay .speed-select-list.open { display: block; }
+    #controls-overlay .speed-select-list li {
+      padding: 6px 12px; cursor: pointer; font-size: 12px; color: #d0d8e8;
+      white-space: nowrap;
+    }
+    #controls-overlay .speed-select-list li:hover { background: #2a4a7a; }
+    #controls-overlay .speed-select-list li.selected { color: #f0c040; font-weight: bold; }
     #controls-overlay .progress-row { width: 100%; display: flex; align-items: center; gap: 8px; margin-top: 2px; }
     #controls-overlay .progress-row label { font-size: 11px; min-width: 50px; }
     #controls-overlay .progress-row input[type="range"] { max-width: none; }
+    #controls-overlay .controls-row { display: flex; align-items: center; gap: 8px; }
     #controls-overlay .btn-row { display: flex; gap: 6px; }
     #controls-overlay button {
       padding: 6px 12px; border: 1px solid #2a4a7a; border-radius: 4px;
@@ -84,23 +105,28 @@
         <input type="range" id="progress-slider" min="0" max="1" step="1" value="0" />
         <span id="progress-label">0/0</span>
       </div>
-      <label>Speed:</label>
-      <select id="speed-select">
-        <option value="0.2">0.2x</option>
-        <option value="0.3">0.3x</option>
-        <option value="0.4">0.4x</option>
-        <option value="0.5">0.5x</option>
-        <option value="0.6">0.6x</option>
-        <option value="0.7">0.7x</option>
-        <option value="0.8">0.8x</option>
-        <option value="0.9">0.9x</option>
-        <option value="1.0" selected>1.0x</option>
-        <option value="1.1">1.1x</option>
-        <option value="1.2">1.2x</option>
-        <option value="1.3">1.3x</option>
-        <option value="1.4">1.4x</option>
-        <option value="1.5">1.5x</option>
-      </select>
+      <div class="controls-row">
+        <label>Speed:</label>
+        <div class="speed-select" id="speed-select">
+          <button class="speed-select-btn" type="button">1.0x</button>
+          <ul class="speed-select-list">
+            <li data-value="0.2">0.2x</li>
+            <li data-value="0.3">0.3x</li>
+            <li data-value="0.4">0.4x</li>
+            <li data-value="0.5">0.5x</li>
+            <li data-value="0.6">0.6x</li>
+            <li data-value="0.7">0.7x</li>
+            <li data-value="0.8">0.8x</li>
+            <li data-value="0.9">0.9x</li>
+            <li data-value="1.0" class="selected">1.0x</li>
+            <li data-value="1.1">1.1x</li>
+            <li data-value="1.2">1.2x</li>
+            <li data-value="1.3">1.3x</li>
+            <li data-value="1.4">1.4x</li>
+            <li data-value="1.5">1.5x</li>
+          </ul>
+        </div>
+      </div>
       <div class="btn-row">
         <button id="btn-play">&#9654; Play</button>
       </div>

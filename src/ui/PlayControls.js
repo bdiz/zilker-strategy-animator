@@ -8,7 +8,9 @@ export default class PlayControls {
 
     this.playlistEl = document.getElementById("playlist");
     this.playBtn = document.getElementById("btn-play");
-    this.speedSelect = document.getElementById("speed-select");
+    this.speedSelectEl = document.getElementById("speed-select");
+    this.speedBtn = this.speedSelectEl.querySelector(".speed-select-btn");
+    this.speedList = this.speedSelectEl.querySelector(".speed-select-list");
     this.stepLabel = document.getElementById("step-label");
     this.progressSlider = document.getElementById("progress-slider");
     this.progressLabel = document.getElementById("progress-label");
@@ -30,6 +32,8 @@ export default class PlayControls {
     scene.animationRunner.callbacks.onProgress = (current, total) => {
       this.updateProgress(current, total);
     };
+
+    this.closeSpeedList = this.closeSpeedList.bind(this);
   }
 
   setupPlaylist() {
@@ -64,10 +68,28 @@ export default class PlayControls {
       }
     });
 
-    this.speedSelect.addEventListener("change", () => {
-      const val = parseFloat(this.speedSelect.value);
-      this.scene.setSpeed(val);
+    this.speedBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (this.speedList.classList.contains("open")) {
+        this.closeSpeedList();
+      } else {
+        this.openSpeedList();
+      }
     });
+
+    this.speedList.querySelectorAll("li").forEach((li) => {
+      li.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const val = parseFloat(li.dataset.value);
+        this.speedBtn.textContent = li.textContent;
+        this.speedList.querySelectorAll("li").forEach((l) => l.classList.remove("selected"));
+        li.classList.add("selected");
+        this.scene.setSpeed(val);
+        this.closeSpeedList();
+      });
+    });
+
+    document.addEventListener("click", this.closeSpeedList);
 
     this.progressSlider.addEventListener("input", () => {
       this._draggingProgress = true;
@@ -88,6 +110,37 @@ export default class PlayControls {
       this.playBtn.textContent = "\u25B6 Play";
       this.scene.seekTo(target);
     });
+  }
+
+  openSpeedList() {
+    const btnRect = this.speedBtn.getBoundingClientRect();
+    const list = this.speedList;
+    list.classList.add("open");
+
+    list.style.left = "";
+    list.style.top = "";
+    list.style.bottom = "";
+
+    const listRect = list.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    let left = btnRect.left;
+    if (left + listRect.width > vw) {
+      left = vw - listRect.width - 4;
+    }
+    if (left < 4) left = 4;
+    list.style.left = left + "px";
+
+    if (btnRect.top > vh - btnRect.bottom) {
+      list.style.bottom = (vh - btnRect.top + 2) + "px";
+    } else {
+      list.style.top = (btnRect.bottom + 2) + "px";
+    }
+  }
+
+  closeSpeedList() {
+    this.speedList.classList.remove("open");
   }
 
   updateProgress(current, total) {
