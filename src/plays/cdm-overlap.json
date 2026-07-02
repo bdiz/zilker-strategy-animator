@@ -3,6 +3,7 @@
   "description": "CDM passes to LM → LM draws defender → CDM overlaps outside → FWD lays off → CDM scores",
   "commands": [
     [
+      { "action": "placeBall", "player": "CDM" },
       { "action": "pass", "from": "CDM", "to": "LM", "duration": 800 }
     ],
     [

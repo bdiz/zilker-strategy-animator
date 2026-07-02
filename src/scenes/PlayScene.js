@@ -4,7 +4,7 @@ import Ball from "../objects/Ball.js";
 import PlayInterpreter from "../animation/PlayInterpreter.js";
 import allPlays from "../plays/index.js";
 import AnimationRunner from "../animation/AnimationRunner.js";
-import { FORMATIONS, getLayout, toScreen } from "../config.js";
+import { FORMATIONS, BALL_START_POS, PLAYER_RADIUS, getLayout, toScreen } from "../config.js";
 
 export default class PlayScene extends Phaser.Scene {
   constructor() {
@@ -22,6 +22,10 @@ export default class PlayScene extends Phaser.Scene {
     this.createPlayers();
     this.createBall();
     this.setFormation("diamond");
+
+    const layout = getLayout() || { scale: 1, offsetX: 0, offsetY: 0 };
+    const start = toScreen(layout, BALL_START_POS);
+    this.ball.setPosition(start.x, start.y);
 
     this.animationRunner = new AnimationRunner(this, this.players, this.ball);
 
@@ -64,6 +68,18 @@ export default class PlayScene extends Phaser.Scene {
     const playData = allPlays[index];
     const interpreter = new PlayInterpreter(playData);
     this.animationRunner.loadPlay(interpreter);
+
+    const firstGroup = playData.commands[0] || [];
+    const placeCmd = firstGroup.find((c) => c.action === "placeBall");
+    if (placeCmd && placeCmd.player) {
+      const player = this.players[placeCmd.player];
+      const layout = getLayout() || { scale: 1, offsetX: 0, offsetY: 0 };
+      if (player) {
+        const offset = PLAYER_RADIUS * 0.8 * layout.scale;
+        this.ball.detach();
+        this.ball.setPosition(player.x + offset, player.y + offset);
+      }
+    }
 
     if (this.onPlayChange) {
       this.onPlayChange(index, playData.name, playData.description);
