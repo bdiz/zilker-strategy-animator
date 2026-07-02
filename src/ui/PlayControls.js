@@ -52,7 +52,6 @@ export default class PlayControls {
       if (this.scene.animationRunner.running) {
         this.scene.animationRunner.stop();
         this.playBtn.textContent = "\u25B6 Play";
-        this.scene.time.timeScale = 1;
         this.stepLabel.textContent = "Paused";
       } else {
         this.scene.play();

@@ -35,14 +35,10 @@ export default class AnimationRunner {
 
   setSpeed(speed) {
     this.speed = speed;
-    if (this.running) {
-      this.scene.time.timeScale = speed;
-    }
   }
 
   stop() {
     this.running = false;
-    this.scene.time.timeScale = 1;
     this.tweens.forEach((t) => t.stop());
     this.tweens = [];
     this.clearGraphics();
@@ -58,7 +54,6 @@ export default class AnimationRunner {
   play() {
     if (!this.interpreter) return;
     this.running = true;
-    this.scene.time.timeScale = this.speed;
     this.runGroup(this.groupIndex);
   }
 
@@ -67,7 +62,6 @@ export default class AnimationRunner {
     const groups = this.interpreter.getGroups();
     if (index >= groups.length) {
       this.running = false;
-      this.scene.time.timeScale = 1;
       this.ball.detach();
       if (this.callbacks.onPlayEnd) this.callbacks.onPlayEnd();
       if (this.callbacks.onStepChange) this.callbacks.onStepChange("Play finished");
