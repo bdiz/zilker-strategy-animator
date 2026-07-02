@@ -7,6 +7,8 @@ export default class PlayControls {
     this._draggingProgress = false;
 
     this.playlistEl = document.getElementById("playlist");
+    this.playSvg = document.getElementById("play-svg");
+    this.pauseSvg = document.getElementById("pause-svg");
     this.playIcon = document.getElementById("play-icon");
     this.speedTrigger = document.getElementById("speed-trigger");
     this.speedOptions = document.getElementById("speed-options");
@@ -26,7 +28,7 @@ export default class PlayControls {
       this.stepLabel.textContent = text;
     };
     scene.animationRunner.callbacks.onPlayEnd = () => {
-      this.playIcon.textContent = "\u25B6";
+      this.showPlayIcon();
     };
     scene.animationRunner.callbacks.onProgress = (current, total) => {
       this.updateProgress(current, total);
@@ -48,11 +50,20 @@ export default class PlayControls {
   }
 
   setupControls() {
+    this.showPlayIcon = () => {
+      this.playSvg.style.display = "";
+      this.pauseSvg.style.display = "none";
+    };
+    this.showPauseIcon = () => {
+      this.playSvg.style.display = "none";
+      this.pauseSvg.style.display = "";
+    };
+
     this.playIcon.addEventListener("click", () => {
       const runner = this.scene.animationRunner;
       if (runner.running) {
         runner.stop();
-        this.playIcon.textContent = "\u25B6";
+        this.showPlayIcon();
         this.stepLabel.textContent = "Paused";
       } else {
         const total = runner.getTotalGroups();
@@ -61,7 +72,7 @@ export default class PlayControls {
           this.updateProgress(0, total);
         }
         this.scene.play();
-        this.playIcon.textContent = "\u23F8";
+        this.showPauseIcon();
       }
     });
 
@@ -90,7 +101,7 @@ export default class PlayControls {
       const total = this.scene.animationRunner.getTotalGroups();
       if (total === 0) return;
       const target = parseInt(this.progressSlider.value, 10);
-      this.playIcon.textContent = "\u25B6";
+      this.showPlayIcon();
       this.scene.seekTo(target);
     });
 
@@ -99,7 +110,7 @@ export default class PlayControls {
       const total = this.scene.animationRunner.getTotalGroups();
       if (total === 0) return;
       const target = parseInt(this.progressSlider.value, 10);
-      this.playIcon.textContent = "\u25B6";
+      this.showPlayIcon();
       this.scene.seekTo(target);
     });
   }
@@ -119,7 +130,7 @@ export default class PlayControls {
 
   loadPlay(index) {
     this.scene.loadPlay(index);
-    this.playIcon.textContent = "\u25B6";
+    this.showPlayIcon();
     window.playSelected = true;
     const total = this.scene.animationRunner.getTotalGroups();
     this.updateProgress(0, total);
