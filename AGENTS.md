@@ -50,8 +50,8 @@ commands: [
   ],
   // Group 2 — runs after group 1 completes
   [
-    { action: "dribble", player: "LM", path: [{ x: 120, y: 220 }], duration: 1500 },
-    { action: "run", player: "CDM", path: [{ x: 130, y: 270 }, { x: 65, y: 170 }], duration: 2500 },
+    { action: "run", player: "LM", path: [{ x: 120, y: 220 }] },
+    { action: "run", player: "CDM", path: [{ x: 130, y: 270 }, { x: 65, y: 170 }] },
   ],
 ]
 ```
@@ -61,12 +61,13 @@ commands: [
 | Action | Params | Description |
 |---|---|---|
 | `pass` | `from`, `to`, `duration` | Bezier arc ball animation, attaches ball to receiver on complete |
-| `dribble` | `player`, `path[]`, `duration` | Player moves along path, ball follows (attached) |
-| `run` | `player`, `path[]`, `duration` | Player runs without ball |
-| `walk` | `player`, `path[]`, `duration` | Same as run (slower visual, same mechanics) |
+| `run` | `player`, `path[]` | Player moves to last path point. Duration auto-computed from distance at `RUN_SPEED` (80 units/s). Ball follows automatically if player has it attached. |
+| `walk` | `player`, `path[]` | Same as run but at `WALK_SPEED` (50 units/s). |
 | `shoot` | `player`, `target{x,y}`, `duration` | Ball shoots to target, no receiver attachment |
 | `placeBall` | `at{x,y}` | Instantly place ball at position |
 | `setFormation` | `name` | Snap all players to formation preset |
+
+Speed constants (`RUN_SPEED`, `WALK_SPEED`) defined in `config.js`. All durations in milliseconds. `pass` and `shoot` require explicit `duration`; `run` and `walk` omit it (auto-computed).
 
 ## Formations
 

@@ -85,6 +85,10 @@ export default class PlayScene extends Phaser.Scene {
     this.animationRunner.setSpeed(speed);
   }
 
+  seekTo(index) {
+    this.animationRunner.snapToGroup(index);
+  }
+
   update() {
     if (this.ball) {
       this.ball.update();

@@ -30,6 +30,8 @@ export const FORMATIONS = { diamond, goalKick, kickoff };
 
 export const PLAYER_RADIUS = 16;
 export const BALL_RADIUS = 15;
+export const RUN_SPEED = 80;
+export const WALK_SPEED = 50;
 export const PLAYER_COLOR = 0xffdd44;
 export const BALL_COLOR = 0xffffff;
 export const BALL_SHADOW_COLOR = 0xcccccc;

@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { FORMATIONS, PLAYER_RADIUS, getLayout, toScreen } from "../config.js";
+import { FORMATIONS, PLAYER_RADIUS, RUN_SPEED, WALK_SPEED, getLayout, toScreen } from "../config.js";
 
 const LINE_COLOR = 0xffffff;
 const LINE_ALPHA = 0.6;
@@ -15,7 +15,7 @@ export default class AnimationRunner {
     this.running = false;
     this.tweens = [];
     this.graphics = null;
-    this.callbacks = { onStepChange: null, onPlayEnd: null };
+    this.callbacks = { onStepChange: null, onPlayEnd: null, onProgress: null };
   }
 
   loadPlay(interpreter) {
@@ -23,6 +23,14 @@ export default class AnimationRunner {
     this.interpreter = interpreter;
     this.groupIndex = 0;
     this.running = false;
+  }
+
+  getTotalGroups() {
+    return this.interpreter ? this.interpreter.getGroups().length : 0;
+  }
+
+  getCurrentGroupIndex() {
+    return this.groupIndex;
   }
 
   setSpeed(speed) {
@@ -51,8 +59,7 @@ export default class AnimationRunner {
     if (!this.interpreter) return;
     this.running = true;
     this.scene.time.timeScale = this.speed;
-    this.groupIndex = 0;
-    this.runGroup(0);
+    this.runGroup(this.groupIndex);
   }
 
   runGroup(index) {
@@ -64,6 +71,7 @@ export default class AnimationRunner {
       this.ball.detach();
       if (this.callbacks.onPlayEnd) this.callbacks.onPlayEnd();
       if (this.callbacks.onStepChange) this.callbacks.onStepChange("Play finished");
+      if (this.callbacks.onProgress) this.callbacks.onProgress(groups.length, groups.length);
       return;
     }
 
@@ -71,6 +79,9 @@ export default class AnimationRunner {
     this.groupIndex = index;
     if (this.callbacks.onStepChange) {
       this.callbacks.onStepChange(`Step ${index + 1} of ${groups.length}`);
+    }
+    if (this.callbacks.onProgress) {
+      this.callbacks.onProgress(index, groups.length);
     }
 
     let maxDuration = 0;
@@ -92,16 +103,22 @@ export default class AnimationRunner {
           const idx = this.tweens.indexOf(t);
           if (idx >= 0) this.tweens.splice(idx, 1);
         });
+        group.forEach((cmd) => {
+          if (cmd.action === "pass") {
+            const to = this.getPlayer(cmd.to);
+            if (to) this.ball.attachTo(to);
+          }
+        });
         this.clearGraphics();
         this.runGroup(index + 1);
       }
     });
+    return maxDuration;
   }
 
   executeCommand(cmd, groupTweens) {
     switch (cmd.action) {
       case "pass": return this.doPass(cmd, groupTweens);
-      case "dribble": return this.doDribble(cmd, groupTweens);
       case "run": return this.doRun(cmd, groupTweens);
       case "walk": return this.doWalk(cmd, groupTweens);
       case "shoot": return this.doShoot(cmd, groupTweens);
@@ -152,34 +169,6 @@ export default class AnimationRunner {
       x: { value: endX, duration },
       y: { value: endY, duration },
       ease: "Sine.easeInOut",
-      onComplete: () => {
-        this.ball.attachTo(to);
-        this.clearGraphics();
-      },
-    });
-    groupTweens.push(tween);
-    this.tweens.push(tween);
-    return duration;
-  }
-
-  doDribble(cmd, groupTweens) {
-    const player = this.getPlayer(cmd.player);
-    if (!player || !cmd.path || cmd.path.length === 0) return 0;
-
-    this.ball.attachTo(player);
-
-    const duration = (cmd.duration || 1000) / this.speed;
-    const last = cmd.path[cmd.path.length - 1];
-    const pts = cmd.path.map((p) => this.toScreen(p));
-    const points = [{ x: player.x, y: player.y }, ...pts];
-
-    this.drawDribblePath(points);
-
-    const tween = this.scene.tweens.add({
-      targets: player,
-      x: { value: pts[pts.length - 1].x, duration },
-      y: { value: pts[pts.length - 1].y, duration },
-      ease: "Linear",
     });
     groupTweens.push(tween);
     this.tweens.push(tween);
@@ -190,14 +179,18 @@ export default class AnimationRunner {
     const player = this.getPlayer(cmd.player);
     if (!player || !cmd.path || cmd.path.length === 0) return 0;
 
-    const duration = (cmd.duration || 1000) / this.speed;
-    const last = cmd.path[cmd.path.length - 1];
-    const dest = this.toScreen(last);
+    const layout = getLayout() || { scale: 1, offsetX: 0, offsetY: 0 };
+    const endScreen = this.toScreen(cmd.path[cmd.path.length - 1]);
+    const dx = endScreen.x - player.x;
+    const dy = endScreen.y - player.y;
+    const fieldDist = Math.sqrt(dx * dx + dy * dy) / layout.scale;
+    const computed = Math.round((fieldDist / RUN_SPEED) * 1000);
+    const duration = (cmd.duration || computed) / this.speed;
 
     const tween = this.scene.tweens.add({
       targets: player,
-      x: { value: dest.x, duration },
-      y: { value: dest.y, duration },
+      x: { value: endScreen.x, duration },
+      y: { value: endScreen.y, duration },
       ease: "Linear",
     });
     groupTweens.push(tween);
@@ -206,7 +199,26 @@ export default class AnimationRunner {
   }
 
   doWalk(cmd, groupTweens) {
-    return this.doRun(cmd, groupTweens);
+    const player = this.getPlayer(cmd.player);
+    if (!player || !cmd.path || cmd.path.length === 0) return 0;
+
+    const layout = getLayout() || { scale: 1, offsetX: 0, offsetY: 0 };
+    const endScreen = this.toScreen(cmd.path[cmd.path.length - 1]);
+    const dx = endScreen.x - player.x;
+    const dy = endScreen.y - player.y;
+    const fieldDist = Math.sqrt(dx * dx + dy * dy) / layout.scale;
+    const computed = Math.round((fieldDist / WALK_SPEED) * 1000);
+    const duration = (cmd.duration || computed) / this.speed;
+
+    const tween = this.scene.tweens.add({
+      targets: player,
+      x: { value: endScreen.x, duration },
+      y: { value: endScreen.y, duration },
+      ease: "Linear",
+    });
+    groupTweens.push(tween);
+    this.tweens.push(tween);
+    return duration;
   }
 
   doShoot(cmd, groupTweens) {
@@ -300,5 +312,87 @@ export default class AnimationRunner {
       this.graphics.lineTo(points[i].x, points[i].y);
     }
     this.graphics.strokePath();
+  }
+
+  snapToGroup(targetIndex) {
+    if (!this.interpreter) return;
+    const groups = this.interpreter.getGroups();
+    const total = groups.length;
+    if (total === 0) return;
+    targetIndex = Math.max(0, Math.min(targetIndex, total));
+
+    this.stop();
+
+    this.ball.detach();
+
+    const layout = getLayout() || { scale: 1, offsetX: 0, offsetY: 0 };
+    const formation = FORMATIONS["diamond"];
+    if (formation) {
+      Object.entries(formation).forEach(([id, pos]) => {
+        const p = this.players[id];
+        if (p) {
+          const screen = toScreen(layout, pos);
+          p.setPosition(screen.x, screen.y);
+        }
+      });
+    }
+
+    for (let i = 0; i < targetIndex; i++) {
+      const group = groups[i];
+      group.forEach((cmd) => this.snapCommand(cmd));
+    }
+
+    this.groupIndex = targetIndex;
+    this.running = false;
+
+    if (this.callbacks.onProgress) {
+      this.callbacks.onProgress(targetIndex, total);
+    }
+    if (this.callbacks.onStepChange) {
+      const label = targetIndex === total ? "Play finished" : `Step ${targetIndex + 1} of ${total}`;
+      this.callbacks.onStepChange(label);
+    }
+  }
+
+  snapCommand(cmd) {
+    switch (cmd.action) {
+      case "pass": {
+        const to = this.getPlayer(cmd.to);
+        if (to) {
+          this.ball.detach();
+          this.ball.attachTo(to);
+        }
+        break;
+      }
+      case "run":
+      case "walk": {
+        const player = this.getPlayer(cmd.player);
+        if (player && cmd.path && cmd.path.length > 0) {
+          const end = this.toScreen(cmd.path[cmd.path.length - 1]);
+          player.setPosition(end.x, end.y);
+        }
+        break;
+      }
+      case "shoot": {
+        this.ball.detach();
+        if (cmd.target) {
+          const end = this.toScreen(cmd.target);
+          this.ball.setPosition(end.x, end.y);
+        }
+        break;
+      }
+      case "placeBall": {
+        this.ball.detach();
+        if (cmd.at) {
+          const pos = this.toScreen(cmd.at);
+          this.ball.setPosition(pos.x, pos.y);
+        }
+        break;
+      }
+      case "setFormation": {
+        this.doSetFormation(cmd);
+        break;
+      }
+    }
   }
 }

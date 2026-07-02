@@ -4,13 +4,15 @@ export default class PlayControls {
   constructor(scene) {
     this.scene = scene;
     this.currentIndex = 0;
+    this._draggingProgress = false;
 
     this.playlistEl = document.getElementById("playlist");
     this.playBtn = document.getElementById("btn-play");
     this.restartBtn = document.getElementById("btn-restart");
-    this.speedSlider = document.getElementById("speed-slider");
-    this.speedLabel = document.getElementById("speed-label");
+    this.speedSelect = document.getElementById("speed-select");
     this.stepLabel = document.getElementById("step-label");
+    this.progressSlider = document.getElementById("progress-slider");
+    this.progressLabel = document.getElementById("progress-label");
 
     this.setupPlaylist();
     this.setupControls();
@@ -19,14 +21,15 @@ export default class PlayControls {
       this.highlightPlay(index);
       this.stepLabel.textContent = desc || name;
     };
-    scene.onStepChange = (text) => {
-      this.stepLabel.textContent = text;
-    };
+
     scene.animationRunner.callbacks.onStepChange = (text) => {
       this.stepLabel.textContent = text;
     };
     scene.animationRunner.callbacks.onPlayEnd = () => {
-      this.playBtn.textContent = "▶ Play";
+      this.playBtn.textContent = "\u25B6 Play";
+    };
+    scene.animationRunner.callbacks.onProgress = (current, total) => {
+      this.updateProgress(current, total);
     };
   }
 
@@ -48,25 +51,52 @@ export default class PlayControls {
     this.playBtn.addEventListener("click", () => {
       if (this.scene.animationRunner.running) {
         this.scene.animationRunner.stop();
-        this.playBtn.textContent = "▶ Play";
+        this.playBtn.textContent = "\u25B6 Play";
         this.scene.time.timeScale = 1;
         this.stepLabel.textContent = "Paused";
       } else {
         this.scene.play();
-        this.playBtn.textContent = "⏸ Pause";
+        this.playBtn.textContent = "\u23F8 Pause";
       }
     });
 
     this.restartBtn.addEventListener("click", () => {
       this.scene.restart();
-      this.playBtn.textContent = "▶ Play";
+      this.playBtn.textContent = "\u25B6 Play";
+      this.updateProgress(0, this.scene.animationRunner.getTotalGroups());
     });
 
-    this.speedSlider.addEventListener("input", () => {
-      const val = parseFloat(this.speedSlider.value);
-      this.speedLabel.textContent = val.toFixed(2) + "x";
+    this.speedSelect.addEventListener("change", () => {
+      const val = parseFloat(this.speedSelect.value);
       this.scene.setSpeed(val);
     });
+
+    this.progressSlider.addEventListener("input", () => {
+      this._draggingProgress = true;
+      const total = this.scene.animationRunner.getTotalGroups();
+      if (total === 0) return;
+      const target = parseInt(this.progressSlider.value, 10);
+      this.progressLabel.textContent = `${target}/${total}`;
+      this.playBtn.textContent = "\u25B6 Play";
+      this.scene.seekTo(target);
+    });
+
+    this.progressSlider.addEventListener("change", () => {
+      this._draggingProgress = false;
+      const total = this.scene.animationRunner.getTotalGroups();
+      if (total === 0) return;
+      const target = parseInt(this.progressSlider.value, 10);
+      this.progressLabel.textContent = `${target}/${total}`;
+      this.playBtn.textContent = "\u25B6 Play";
+      this.scene.seekTo(target);
+    });
+  }
+
+  updateProgress(current, total) {
+    if (this._draggingProgress) return;
+    this.progressSlider.max = total > 0 ? total : 1;
+    this.progressSlider.value = current;
+    this.progressLabel.textContent = `${current}/${total}`;
   }
 
   highlightPlay(index) {
@@ -78,6 +108,8 @@ export default class PlayControls {
 
   loadPlay(index) {
     this.scene.loadPlay(index);
-    this.playBtn.textContent = "▶ Play";
+    this.playBtn.textContent = "\u25B6 Play";
+    const total = this.scene.animationRunner.getTotalGroups();
+    this.updateProgress(0, total);
   }
 }
