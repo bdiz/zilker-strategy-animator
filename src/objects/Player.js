@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { PLAYER_RADIUS, PLAYER_COLOR, getLayout, toScreen } from "../config.js";
+import { PLAYER_RADIUS, getLayout, toScreen } from "../config.js";
 
 export default class Player extends Phaser.GameObjects.Container {
   constructor(scene, id, x, y) {
@@ -9,9 +9,8 @@ export default class Player extends Phaser.GameObjects.Container {
     this.fieldY = 0;
 
     this.sprite = scene.add.image(0, 0, "smiley");
-    this.sprite.setScale(0.75);
 
-    this.label = scene.add.text(0, 22, id, {
+    this.label = scene.add.text(0, 0, id, {
       fontFamily: "Arial, sans-serif",
       fontSize: "11px",
       fontStyle: "bold",
@@ -23,6 +22,22 @@ export default class Player extends Phaser.GameObjects.Container {
 
     this.add([this.sprite, this.label]);
     scene.add.existing(this);
+
+    this.refreshSpriteScale();
+  }
+
+  refreshSpriteScale() {
+    const layout = getLayout() || { scale: 1 };
+    const diameter = Math.max(1, PLAYER_RADIUS * 2 * layout.scale);
+    const source = this.sprite.texture.source[0];
+    const w = source ? source.width : this.sprite.width;
+    const h = source ? source.height : this.sprite.height;
+    const size = Math.min(w, h);
+    const cx = w / 2;
+    const cy = h / 2;
+    this.sprite.setCrop(cx - size / 2, cy - size / 2, size, size);
+    this.sprite.setDisplaySize(diameter, diameter);
+    this.label.y = diameter / 2 + 4;
   }
 
   setFieldPosition(fieldX, fieldY) {
@@ -38,6 +53,7 @@ export default class Player extends Phaser.GameObjects.Container {
     if (!layout) return;
     const screen = toScreen(layout, { x: this.fieldX, y: this.fieldY });
     this.setPosition(screen.x, screen.y);
+    this.refreshSpriteScale();
   }
 
   hasBall(ball) {
