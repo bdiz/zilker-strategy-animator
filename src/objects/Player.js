@@ -28,7 +28,7 @@ export default class Player extends Phaser.GameObjects.Container {
 
   refreshSpriteScale() {
     const layout = getLayout() || { scale: 1 };
-    const diameter = Math.max(1, PLAYER_RADIUS * 2 * layout.scale);
+    const diameter = Math.max(1, PLAYER_RADIUS * 2 * 0.55 * layout.scale);
     const source = this.sprite.texture.source[0];
     const w = source ? source.width : this.sprite.width;
     const h = source ? source.height : this.sprite.height;
