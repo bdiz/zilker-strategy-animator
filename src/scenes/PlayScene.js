@@ -12,21 +12,23 @@ export default class PlayScene extends Phaser.Scene {
   }
 
   create() {
-    this.players = {};
+    this.players = null;
     this.ball = null;
     this.currentPlayIndex = 0;
     this.animationRunner = null;
     this.onPlayChange = null;
     this.onStepChange = null;
 
-    this.createPlayers();
-    this.createBall();
-    this.setFormation("diamond");
+    this.animationRunner = new AnimationRunner(this, null, null);
+  }
 
-    this.animationRunner = new AnimationRunner(this, this.players, this.ball);
-
-    if (allPlays.length > 0) {
-      this.loadPlay(0);
+  ensurePlayers() {
+    if (!this.players) {
+      this.players = {};
+      this.createPlayers();
+      this.createBall();
+      this.animationRunner.players = this.players;
+      this.animationRunner.ball = this.ball;
     }
   }
 
@@ -57,6 +59,7 @@ export default class PlayScene extends Phaser.Scene {
 
   loadPlay(index) {
     if (index < 0 || index >= allPlays.length) return;
+    this.ensurePlayers();
     this.currentPlayIndex = index;
     this.setFormation("diamond");
     this.animationRunner.stop();
@@ -65,11 +68,35 @@ export default class PlayScene extends Phaser.Scene {
     const interpreter = new PlayInterpreter(playData);
     this.animationRunner.loadPlay(interpreter);
 
+    this.placeBallAtFirstPasser(playData);
+
     if (this.onPlayChange) {
       this.onPlayChange(index, playData.name, playData.description);
     }
     if (this.onStepChange) {
       this.onStepChange("");
+    }
+  }
+
+  placeBallAtFirstPasser(playData) {
+    this.ball.detach();
+    for (const group of playData.commands) {
+      for (const cmd of group) {
+        if (cmd.action === "placeBall" && cmd.at) {
+          const layout = getLayout() || { scale: 1, offsetX: 0, offsetY: 0 };
+          const pos = toScreen(layout, cmd.at);
+          this.ball.setPosition(pos.x, pos.y);
+          return;
+        }
+        if (cmd.action === "pass") {
+          const player = this.players[cmd.from];
+          if (player) {
+            this.ball.attachTo(player);
+            this.ball.update();
+          }
+          return;
+        }
+      }
     }
   }
 
