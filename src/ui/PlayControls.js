@@ -120,6 +120,7 @@ export default class PlayControls {
   loadPlay(index) {
     this.scene.loadPlay(index);
     this.playIcon.textContent = "\u25B6";
+    window.playSelected = true;
     const total = this.scene.animationRunner.getTotalGroups();
     this.updateProgress(0, total);
   }

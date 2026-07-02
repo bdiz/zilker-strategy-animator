@@ -133,6 +133,7 @@
       toggle.classList.add('hidden');
     }
     function closeMenu() {
+      if (!window.playSelected) return;
       sidebar.classList.remove('open');
       backdrop.classList.remove('open');
       toggle.classList.remove('hidden');
@@ -147,7 +148,7 @@
       btn.addEventListener('click', closeMenu);
     });
 
-    if (window.innerWidth >= 768) openMenu();
+    openMenu();
   </script>
   <script type="module" src="/src/main.js"></script>
 </body>
