@@ -7,7 +7,7 @@ export default class PlayControls {
     this._draggingProgress = false;
 
     this.playlistEl = document.getElementById("playlist");
-    this.playBtn = document.getElementById("btn-play");
+    this.playIcon = document.getElementById("play-icon");
     this.speedSelect = document.getElementById("speed-select");
     this.stepLabel = document.getElementById("step-label");
     this.progressSlider = document.getElementById("progress-slider");
@@ -25,7 +25,7 @@ export default class PlayControls {
       this.stepLabel.textContent = text;
     };
     scene.animationRunner.callbacks.onPlayEnd = () => {
-      this.playBtn.textContent = "\u25B6 Play";
+      this.playIcon.textContent = "\u25B6";
     };
     scene.animationRunner.callbacks.onProgress = (current, total) => {
       this.updateProgress(current, total);
@@ -47,11 +47,11 @@ export default class PlayControls {
   }
 
   setupControls() {
-    this.playBtn.addEventListener("click", () => {
+    this.playIcon.addEventListener("click", () => {
       const runner = this.scene.animationRunner;
       if (runner.running) {
         runner.stop();
-        this.playBtn.textContent = "\u25B6 Play";
+        this.playIcon.textContent = "\u25B6";
         this.stepLabel.textContent = "Paused";
       } else {
         const total = runner.getTotalGroups();
@@ -60,7 +60,7 @@ export default class PlayControls {
           this.updateProgress(0, total);
         }
         this.scene.play();
-        this.playBtn.textContent = "\u23F8 Pause";
+        this.playIcon.textContent = "\u23F8";
       }
     });
 
@@ -75,7 +75,7 @@ export default class PlayControls {
       if (total === 0) return;
       const target = parseInt(this.progressSlider.value, 10);
       this.progressLabel.textContent = `${target}/${total}`;
-      this.playBtn.textContent = "\u25B6 Play";
+      this.playIcon.textContent = "\u25B6";
       this.scene.seekTo(target);
     });
 
@@ -85,7 +85,7 @@ export default class PlayControls {
       if (total === 0) return;
       const target = parseInt(this.progressSlider.value, 10);
       this.progressLabel.textContent = `${target}/${total}`;
-      this.playBtn.textContent = "\u25B6 Play";
+      this.playIcon.textContent = "\u25B6";
       this.scene.seekTo(target);
     });
   }
@@ -106,7 +106,7 @@ export default class PlayControls {
 
   loadPlay(index) {
     this.scene.loadPlay(index);
-    this.playBtn.textContent = "\u25B6 Play";
+    this.playIcon.textContent = "\u25B6";
     const total = this.scene.animationRunner.getTotalGroups();
     this.updateProgress(0, total);
   }
