@@ -228,8 +228,8 @@ export default class AnimationRunner {
     this.ball.detach();
 
     const duration = (cmd.duration || 500) / this.speed;
-    const startX = player.x;
-    const startY = player.y;
+    const startX = this.ball.x;
+    const startY = this.ball.y;
     const target = this.toScreen(cmd.target);
     const endX = target.x;
     const endY = target.y;
