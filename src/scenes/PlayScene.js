@@ -21,13 +21,17 @@ export default class PlayScene extends Phaser.Scene {
 
     this.createPlayers();
     this.createBall();
-    this.hideAll();
+    this.setFormation("diamond");
 
     this.animationRunner = new AnimationRunner(this, this.players, this.ball);
+
+    if (allPlays.length > 0) {
+      this.loadPlay(0);
+    }
   }
 
   createPlayers() {
-    const ids = ["GK", "CM", "LB", "RB", "LM", "RM", "FWD"];
+    const ids = ["GK", "CDM", "LB", "RB", "LM", "RM", "FWD"];
     ids.forEach((id) => {
       const p = new Player(this, id, 0, 0);
       this.players[id] = p;
@@ -36,16 +40,6 @@ export default class PlayScene extends Phaser.Scene {
 
   createBall() {
     this.ball = new Ball(this, 0, 0);
-  }
-
-  hideAll() {
-    Object.values(this.players).forEach(p => p.setVisible(false));
-    if (this.ball) this.ball.setVisible(false);
-  }
-
-  showAll() {
-    Object.values(this.players).forEach(p => p.setVisible(true));
-    if (this.ball) this.ball.setVisible(true);
   }
 
   setFormation(name) {
@@ -64,26 +58,12 @@ export default class PlayScene extends Phaser.Scene {
   loadPlay(index) {
     if (index < 0 || index >= allPlays.length) return;
     this.currentPlayIndex = index;
-    this.showAll();
     this.setFormation("diamond");
-    window.playSelected = true;
     this.animationRunner.stop();
 
     const playData = allPlays[index];
     const interpreter = new PlayInterpreter(playData);
     this.animationRunner.loadPlay(interpreter);
-
-    const firstGroup = interpreter.getGroups()[0];
-    if (firstGroup) {
-      const placeCmd = firstGroup.find(c => c.action === "placeBall" && c.at);
-      if (placeCmd) {
-        const layout = getLayout();
-        if (layout) {
-          const pos = toScreen(layout, placeCmd.at);
-          this.ball.setPosition(pos.x, pos.y);
-        }
-      }
-    }
 
     if (this.onPlayChange) {
       this.onPlayChange(index, playData.name, playData.description);

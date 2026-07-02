@@ -1,4 +1,4 @@
-import cmOverlap from './cm-overlap.json';
+import cdmOverlap from './cdm-overlap.json';
 import goalKick from './goal-kick.json';
 
-export default [cmOverlap, goalKick];
+export default [cdmOverlap, goalKick];

@@ -1,13 +1,13 @@
 {
   "name": "Goal Kick Build-Up",
-  "description": "CM takes goal kick short to LB → carries up → plays to LM → switches to RM",
+  "description": "CDM takes goal kick short to LB → carries up → plays to LM → switches to RM",
   "commands": [
     [
       { "action": "setFormation", "name": "goalKick" },
       { "action": "placeBall", "at": { "x": 170, "y": 470 } }
     ],
     [
-      { "action": "walk", "player": "CM", "path": [
+      { "action": "walk", "player": "CDM", "path": [
         { "x": 160, "y": 440 }
       ] },
       { "action": "run", "player": "LB", "path": [
@@ -15,7 +15,7 @@
       ] }
     ],
     [
-      { "action": "pass", "from": "CM", "to": "LB", "duration": 600 }
+      { "action": "pass", "from": "CDM", "to": "LB", "duration": 600 }
     ],
     [
       { "action": "run", "player": "LB", "path": [
@@ -23,7 +23,7 @@
         { "x": 85, "y": 270 },
         { "x": 95, "y": 220 }
       ] },
-      { "action": "run", "player": "CM", "path": [
+      { "action": "run", "player": "CDM", "path": [
         { "x": 150, "y": 300 },
         { "x": 170, "y": 250 }
       ] },

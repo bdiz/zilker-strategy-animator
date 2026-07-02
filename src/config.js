@@ -17,10 +17,10 @@ export const FIELD = {
 };
 
 export const PLAYER_NAMES = {
-  GK: "GK", CM: "CM", LB: "LB", RB: "RB", LM: "LM", RM: "RM", FWD: "FWD",
+  GK: "GK", CDM: "CDM", LB: "LB", RB: "RB", LM: "LM", RM: "RM", FWD: "FWD",
 };
 
-export const PLAYER_IDS = ["GK", "CM", "LB", "RB", "LM", "RM", "FWD"];
+export const PLAYER_IDS = ["GK", "CDM", "LB", "RB", "LM", "RM", "FWD"];
 
 import diamond from './formations/diamond.json';
 import goalKick from './formations/goalKick.json';

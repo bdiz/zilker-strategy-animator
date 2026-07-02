@@ -46,12 +46,12 @@ Each play has `name`, `description`, and `commands` — an **array of arrays** (
 commands: [
   // Group 1 — runs in parallel
   [
-    { action: "pass", from: "CM", to: "LM", duration: 800 },
+    { action: "pass", from: "CDM", to: "LM", duration: 800 },
   ],
   // Group 2 — runs after group 1 completes
   [
     { action: "run", player: "LM", path: [{ x: 120, y: 220 }] },
-    { action: "run", player: "CM", path: [{ x: 130, y: 270 }, { x: 65, y: 170 }] },
+    { action: "run", player: "CDM", path: [{ x: 130, y: 270 }, { x: 65, y: 170 }] },
   ],
 ]
 ```
@@ -69,15 +69,13 @@ commands: [
 
 Speed constants (`RUN_SPEED`, `WALK_SPEED`) defined in `config.js`. All durations in milliseconds. `pass` and `shoot` require explicit `duration`; `run` and `walk` omit it (auto-computed).
 
-> **Important:** Every play **must** include a `placeBall` command in the first group to position the ball before the first action. The `at` position should be at the starting player's location plus a bottom-right offset (e.g., `{ x: 183, y: 323 }` for CM at `{ x: 170, y: 310 }`). This ensures the ball is visible on the field before pressing play.
-
 ## Formations
 
 Defined in `config.js`. Current presets: `diamond`, `goalKick`, `kickoff`.
 
 ## Players
 
-7 players: `GK`, `CM`, `LB`, `RB`, `LM`, `RM`, `FWD`. All smiley faces with text labels. Ball follows dribbling player via `attachTo()/detach()`.
+7 players: `GK`, `CDM`, `LB`, `RB`, `LM`, `RM`, `FWD`. All smiley faces with text labels. Ball follows dribbling player via `attachTo()/detach()`.
 
 ## Controls
 
