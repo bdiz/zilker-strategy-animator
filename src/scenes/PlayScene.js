@@ -21,13 +21,9 @@ export default class PlayScene extends Phaser.Scene {
 
     this.createPlayers();
     this.createBall();
-    this.setFormation("diamond");
+    this.hideAll();
 
     this.animationRunner = new AnimationRunner(this, this.players, this.ball);
-
-    if (allPlays.length > 0) {
-      this.loadPlay(0);
-    }
   }
 
   createPlayers() {
@@ -40,6 +36,16 @@ export default class PlayScene extends Phaser.Scene {
 
   createBall() {
     this.ball = new Ball(this, 0, 0);
+  }
+
+  hideAll() {
+    Object.values(this.players).forEach(p => p.setVisible(false));
+    if (this.ball) this.ball.setVisible(false);
+  }
+
+  showAll() {
+    Object.values(this.players).forEach(p => p.setVisible(true));
+    if (this.ball) this.ball.setVisible(true);
   }
 
   setFormation(name) {
@@ -58,7 +64,9 @@ export default class PlayScene extends Phaser.Scene {
   loadPlay(index) {
     if (index < 0 || index >= allPlays.length) return;
     this.currentPlayIndex = index;
+    this.showAll();
     this.setFormation("diamond");
+    window.playSelected = true;
     this.animationRunner.stop();
 
     const playData = allPlays[index];

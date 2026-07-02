@@ -75,7 +75,7 @@
       <h1>Zilker Soccer</h1>
       <h2>Strategy Animator</h2>
       <div id="playlist"></div>
-      <div class="step-label" id="step-label">Ready</div>
+      <div class="step-label" id="step-label">Select a play</div>
     </div>
     <div id="game-container"></div>
     <div id="controls-overlay">
@@ -110,6 +110,7 @@
     const sidebar = document.getElementById('sidebar');
     const backdrop = document.getElementById('backdrop');
     const toggle = document.getElementById('menu-toggle');
+    var playSelected = false;
 
     function openMenu() {
       sidebar.classList.add('open');
@@ -117,6 +118,7 @@
       toggle.classList.add('hidden');
     }
     function closeMenu() {
+      if (!playSelected) return;
       sidebar.classList.remove('open');
       backdrop.classList.remove('open');
       toggle.classList.remove('hidden');
@@ -131,7 +133,7 @@
       btn.addEventListener('click', closeMenu);
     });
 
-    if (window.innerWidth >= 768) openMenu();
+    openMenu();
   </script>
   <script type="module" src="/src/main.js"></script>
 </body>
