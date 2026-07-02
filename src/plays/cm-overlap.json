@@ -1,17 +1,17 @@
 {
-  "name": "CDM Overlap & Score",
-  "description": "CDM passes to LM → LM draws defender → CDM overlaps outside → FWD lays off → CDM scores",
+  "name": "CM Overlap & Score",
+  "description": "CM passes to LM → LM draws defender → CM overlaps outside → FWD lays off → CM scores",
   "commands": [
     [
       { "action": "placeBall", "at": { "x": 183, "y": 323 } },
-      { "action": "pass", "from": "CDM", "to": "LM", "duration": 800 }
+      { "action": "pass", "from": "CM", "to": "LM", "duration": 800 }
     ],
     [
       { "action": "run", "player": "LM", "path": [
         { "x": 105, "y": 220 },
         { "x": 125, "y": 215 }
       ] },
-      { "action": "run", "player": "CDM", "path": [
+      { "action": "run", "player": "CM", "path": [
         { "x": 130, "y": 270 },
         { "x": 90, "y": 230 },
         { "x": 65, "y": 170 }
@@ -24,16 +24,16 @@
       { "action": "pass", "from": "LM", "to": "FWD", "duration": 600 }
     ],
     [
-      { "action": "pass", "from": "FWD", "to": "CDM", "duration": 700 }
+      { "action": "pass", "from": "FWD", "to": "CM", "duration": 700 }
     ],
     [
-      { "action": "run", "player": "CDM", "path": [
+      { "action": "run", "player": "CM", "path": [
         { "x": 80, "y": 130 },
         { "x": 120, "y": 65 }
       ] }
     ],
     [
-      { "action": "shoot", "player": "CDM", "target": { "x": 170, "y": 0 }, "duration": 500 }
+      { "action": "shoot", "player": "CM", "target": { "x": 170, "y": 0 }, "duration": 500 }
     ]
   ]
 }

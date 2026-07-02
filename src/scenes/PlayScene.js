@@ -31,7 +31,7 @@ export default class PlayScene extends Phaser.Scene {
   }
 
   createPlayers() {
-    const ids = ["GK", "CDM", "LB", "RB", "LM", "RM", "FWD"];
+    const ids = ["GK", "CM", "LB", "RB", "LM", "RM", "FWD"];
     ids.forEach((id) => {
       const p = new Player(this, id, 0, 0);
       this.players[id] = p;
