@@ -247,12 +247,10 @@ export default class AnimationRunner {
   }
 
   doPlaceBall(cmd) {
-    this.ball.detach();
-    const player = this.getPlayer(cmd.player);
-    if (player) {
-      const layout = getLayout() || { scale: 1 };
-      const offset = PLAYER_RADIUS * 0.8 * layout.scale;
-      this.ball.setPosition(player.x + offset, player.y + offset);
+    if (cmd.at) {
+      this.ball.detach();
+      const pos = this.toScreen(cmd.at);
+      this.ball.setPosition(pos.x, pos.y);
     }
     return 0;
   }
@@ -380,11 +378,9 @@ export default class AnimationRunner {
       }
       case "placeBall": {
         this.ball.detach();
-        const player = this.getPlayer(cmd.player);
-        if (player) {
-          const layout = getLayout() || { scale: 1 };
-          const offset = PLAYER_RADIUS * 0.8 * layout.scale;
-          this.ball.setPosition(player.x + offset, player.y + offset);
+        if (cmd.at) {
+          const pos = this.toScreen(cmd.at);
+          this.ball.setPosition(pos.x, pos.y);
         }
         break;
       }

@@ -28,7 +28,6 @@ import kickoff from './formations/kickoff.json';
 
 export const FORMATIONS = { diamond, goalKick, kickoff };
 
-export const BALL_START_POS = { x: 170, y: 260 };
 export const PLAYER_RADIUS = 16;
 export const BALL_RADIUS = 15;
 export const RUN_SPEED = 80;

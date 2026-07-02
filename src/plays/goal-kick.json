@@ -4,7 +4,7 @@
   "commands": [
     [
       { "action": "setFormation", "name": "goalKick" },
-      { "action": "placeBall", "player": "CDM" }
+      { "action": "placeBall", "at": { "x": 170, "y": 470 } }
     ],
     [
       { "action": "walk", "player": "CDM", "path": [

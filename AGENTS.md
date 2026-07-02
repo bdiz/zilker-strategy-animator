@@ -64,10 +64,12 @@ commands: [
 | `run` | `player`, `path[]` | Player moves to last path point. Duration auto-computed from distance at `RUN_SPEED` (80 units/s). Ball follows automatically if player has it attached. |
 | `walk` | `player`, `path[]` | Same as run but at `WALK_SPEED` (50 units/s). |
 | `shoot` | `player`, `target{x,y}`, `duration` | Ball shoots to target, no receiver attachment |
-| `placeBall` | `player` | Instantly place ball at a player's feet (bottom-right of the smiley) |
+| `placeBall` | `at{x,y}` | Instantly place ball at position |
 | `setFormation` | `name` | Snap all players to formation preset |
 
 Speed constants (`RUN_SPEED`, `WALK_SPEED`) defined in `config.js`. All durations in milliseconds. `pass` and `shoot` require explicit `duration`; `run` and `walk` omit it (auto-computed).
+
+> **Important:** Every play **must** include a `placeBall` command in the first group to position the ball before the first action. The `at` position should be at the starting player's location plus a bottom-right offset (e.g., `{ x: 183, y: 323 }` for CDM at `{ x: 170, y: 310 }`). This ensures the ball is visible on the field before pressing play.
 
 ## Formations
 
@@ -85,5 +87,3 @@ Defined in `config.js`. Current presets: `diamond`, `goalKick`, `kickoff`.
 ## Adding New Plays
 
 Edit `src/plays/index.js` and add an object to the exported array. All positions are in field-space (no offset needed — `AnimationRunner.toScreen()` handles it).
-
-Every play **must** begin with a `placeBall` command in its first group to set the ball's initial position. Use `"player": "CDM"` to place at that player's feet (bottom-right of the smiley). Without this, the ball will start at screen `(0,0)` — the top-left corner.
