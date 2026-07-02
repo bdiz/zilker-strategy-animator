@@ -8,7 +8,6 @@ export default class PlayControls {
 
     this.playlistEl = document.getElementById("playlist");
     this.playBtn = document.getElementById("btn-play");
-    this.restartBtn = document.getElementById("btn-restart");
     this.speedSelect = document.getElementById("speed-select");
     this.stepLabel = document.getElementById("step-label");
     this.progressSlider = document.getElementById("progress-slider");
@@ -49,20 +48,20 @@ export default class PlayControls {
 
   setupControls() {
     this.playBtn.addEventListener("click", () => {
-      if (this.scene.animationRunner.running) {
-        this.scene.animationRunner.stop();
+      const runner = this.scene.animationRunner;
+      if (runner.running) {
+        runner.stop();
         this.playBtn.textContent = "\u25B6 Play";
         this.stepLabel.textContent = "Paused";
       } else {
+        const total = runner.getTotalGroups();
+        if (runner.groupIndex >= total && total > 0) {
+          this.scene.restart();
+          this.updateProgress(0, total);
+        }
         this.scene.play();
         this.playBtn.textContent = "\u23F8 Pause";
       }
-    });
-
-    this.restartBtn.addEventListener("click", () => {
-      this.scene.restart();
-      this.playBtn.textContent = "\u25B6 Play";
-      this.updateProgress(0, this.scene.animationRunner.getTotalGroups());
     });
 
     this.speedSelect.addEventListener("change", () => {

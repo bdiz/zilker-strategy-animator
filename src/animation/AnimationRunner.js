@@ -62,6 +62,7 @@ export default class AnimationRunner {
     const groups = this.interpreter.getGroups();
     if (index >= groups.length) {
       this.running = false;
+      this.groupIndex = groups.length;
       this.ball.detach();
       if (this.callbacks.onPlayEnd) this.callbacks.onPlayEnd();
       if (this.callbacks.onStepChange) this.callbacks.onStepChange("Play finished");
