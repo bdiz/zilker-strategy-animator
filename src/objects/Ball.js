@@ -1,17 +1,24 @@
 import Phaser from "phaser";
-import { BALL_RADIUS, PLAYER_RADIUS, getLayout } from "../config.js";
+import { BALL_RADIUS, PLAYER_RADIUS, getLayout, toScreen } from "../config.js";
 
 export default class Ball extends Phaser.GameObjects.Container {
   constructor(scene, x, y) {
     super(scene, x, y);
     this.carrier = null;
+    this.fieldX = 0;
+    this.fieldY = 0;
 
     this.sprite = scene.add.image(0, 0, "ball");
     this.setSizeFromLayout();
     this.add(this.sprite);
     scene.add.existing(this);
 
-    scene.scale.on("resize", this.setSizeFromLayout, this);
+    scene.scale.on("resize", this.onResize, this);
+  }
+
+  onResize() {
+    this.setSizeFromLayout();
+    this.refreshFromLayout();
   }
 
   setSizeFromLayout() {
@@ -25,6 +32,23 @@ export default class Ball extends Phaser.GameObjects.Container {
     const cy = h / 2;
     this.sprite.setCrop(cx - size / 2, cy - size / 2, size, size);
     this.sprite.setDisplaySize(diameter, diameter * 0.8);
+  }
+
+  setFieldPosition(fieldX, fieldY) {
+    this.fieldX = fieldX;
+    this.fieldY = fieldY;
+    this.detach();
+    const layout = getLayout() || { scale: 1, offsetX: 0, offsetY: 0 };
+    const screen = toScreen(layout, { x: fieldX, y: fieldY });
+    this.setPosition(screen.x, screen.y);
+  }
+
+  refreshFromLayout() {
+    if (this.carrier) return;
+    const layout = getLayout();
+    if (!layout) return;
+    const screen = toScreen(layout, { x: this.fieldX, y: this.fieldY });
+    this.setPosition(screen.x, screen.y);
   }
 
   attachTo(player) {

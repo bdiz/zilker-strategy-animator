@@ -13,8 +13,8 @@ export default class FieldScene extends Phaser.Scene {
     this.scene.launch("PlayScene");
   }
 
-  handleResize(w, h) {
-    const layout = computeLayout(w, h);
+  handleResize() {
+    const layout = computeLayout(this.scale.width, this.scale.height);
     setLayout(layout);
     this.drawPitch(layout);
   }

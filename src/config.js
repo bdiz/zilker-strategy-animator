@@ -66,3 +66,10 @@ export function toScreen(layout, p) {
     y: layout.offsetY + p.y * layout.scale,
   };
 }
+
+export function toField(layout, screenX, screenY) {
+  return {
+    x: (screenX - layout.offsetX) / layout.scale,
+    y: (screenY - layout.offsetY) / layout.scale,
+  };
+}

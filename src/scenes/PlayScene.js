@@ -4,7 +4,7 @@ import Ball from "../objects/Ball.js";
 import PlayInterpreter from "../animation/PlayInterpreter.js";
 import allPlays from "../plays/index.js";
 import AnimationRunner from "../animation/AnimationRunner.js";
-import { FORMATIONS, getLayout, toScreen } from "../config.js";
+import { FORMATIONS } from "../config.js";
 
 export default class PlayScene extends Phaser.Scene {
   constructor() {
@@ -20,6 +20,14 @@ export default class PlayScene extends Phaser.Scene {
     this.onStepChange = null;
 
     this.animationRunner = new AnimationRunner(this, null, null);
+
+    this.scale.on("resize", this.handleResize, this);
+  }
+
+  handleResize() {
+    if (!this.players) return;
+    Object.values(this.players).forEach((p) => p.refreshFromLayout());
+    if (this.ball) this.ball.refreshFromLayout();
   }
 
   ensurePlayers() {
@@ -47,12 +55,10 @@ export default class PlayScene extends Phaser.Scene {
   setFormation(name) {
     const formation = FORMATIONS[name];
     if (!formation) return;
-    const layout = getLayout() || { scale: 1, offsetX: 0, offsetY: 0 };
     Object.entries(formation).forEach(([id, pos]) => {
       const p = this.players[id];
       if (p) {
-        const screen = toScreen(layout, pos);
-        p.setPosition(screen.x, screen.y);
+        p.setFieldPosition(pos.x, pos.y);
       }
     });
   }
@@ -83,9 +89,7 @@ export default class PlayScene extends Phaser.Scene {
     for (const group of playData.commands) {
       for (const cmd of group) {
         if (cmd.action === "placeBall" && cmd.at) {
-          const layout = getLayout() || { scale: 1, offsetX: 0, offsetY: 0 };
-          const pos = toScreen(layout, cmd.at);
-          this.ball.setPosition(pos.x, pos.y);
+          this.ball.setFieldPosition(cmd.at.x, cmd.at.y);
           return;
         }
         if (cmd.action === "pass") {

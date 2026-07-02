@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { FORMATIONS, PLAYER_RADIUS, RUN_SPEED, WALK_SPEED, getLayout, toScreen } from "../config.js";
+import { FORMATIONS, PLAYER_RADIUS, RUN_SPEED, WALK_SPEED, getLayout, toScreen, toField } from "../config.js";
 
 const LINE_COLOR = 0xffffff;
 const LINE_ALPHA = 0.6;
@@ -176,6 +176,7 @@ export default class AnimationRunner {
 
     const layout = getLayout() || { scale: 1, offsetX: 0, offsetY: 0 };
     const endScreen = this.toScreen(cmd.path[cmd.path.length - 1]);
+    const startField = toField(layout, player.x, player.y);
     const dx = endScreen.x - player.x;
     const dy = endScreen.y - player.y;
     const fieldDist = Math.sqrt(dx * dx + dy * dy) / layout.scale;
@@ -187,6 +188,12 @@ export default class AnimationRunner {
       x: { value: endScreen.x, duration },
       y: { value: endScreen.y, duration },
       ease: "Linear",
+      onUpdate: () => {
+        const lay = getLayout() || { scale: 1, offsetX: 0, offsetY: 0 };
+        const f = toField(lay, player.x, player.y);
+        player.fieldX = f.x;
+        player.fieldY = f.y;
+      },
     });
     groupTweens.push(tween);
     this.tweens.push(tween);
@@ -210,6 +217,12 @@ export default class AnimationRunner {
       x: { value: endScreen.x, duration },
       y: { value: endScreen.y, duration },
       ease: "Linear",
+      onUpdate: () => {
+        const lay = getLayout() || { scale: 1, offsetX: 0, offsetY: 0 };
+        const f = toField(lay, player.x, player.y);
+        player.fieldX = f.x;
+        player.fieldY = f.y;
+      },
     });
     groupTweens.push(tween);
     this.tweens.push(tween);
@@ -248,9 +261,7 @@ export default class AnimationRunner {
 
   doPlaceBall(cmd) {
     if (cmd.at) {
-      this.ball.detach();
-      const pos = this.toScreen(cmd.at);
-      this.ball.setPosition(pos.x, pos.y);
+      this.ball.setFieldPosition(cmd.at.x, cmd.at.y);
     }
     return 0;
   }
@@ -258,12 +269,10 @@ export default class AnimationRunner {
   doSetFormation(cmd) {
     const formation = FORMATIONS[cmd.name];
     if (!formation) return 0;
-    const layout = getLayout() || { scale: 1, offsetX: 0, offsetY: 0 };
     Object.entries(formation).forEach(([id, pos]) => {
       const p = this.players[id];
       if (p) {
-        const screen = toScreen(layout, pos);
-        p.setPosition(screen.x, screen.y);
+        p.setFieldPosition(pos.x, pos.y);
       }
     });
     this.ball.detach();
@@ -320,14 +329,12 @@ export default class AnimationRunner {
 
     this.ball.detach();
 
-    const layout = getLayout() || { scale: 1, offsetX: 0, offsetY: 0 };
     const formation = FORMATIONS["diamond"];
     if (formation) {
       Object.entries(formation).forEach(([id, pos]) => {
         const p = this.players[id];
         if (p) {
-          const screen = toScreen(layout, pos);
-          p.setPosition(screen.x, screen.y);
+          p.setFieldPosition(pos.x, pos.y);
         }
       });
     }
@@ -363,24 +370,21 @@ export default class AnimationRunner {
       case "walk": {
         const player = this.getPlayer(cmd.player);
         if (player && cmd.path && cmd.path.length > 0) {
-          const end = this.toScreen(cmd.path[cmd.path.length - 1]);
-          player.setPosition(end.x, end.y);
+          const end = cmd.path[cmd.path.length - 1];
+          player.setFieldPosition(end.x, end.y);
         }
         break;
       }
       case "shoot": {
         this.ball.detach();
         if (cmd.target) {
-          const end = this.toScreen(cmd.target);
-          this.ball.setPosition(end.x, end.y);
+          this.ball.setFieldPosition(cmd.target.x, cmd.target.y);
         }
         break;
       }
       case "placeBall": {
-        this.ball.detach();
         if (cmd.at) {
-          const pos = this.toScreen(cmd.at);
-          this.ball.setPosition(pos.x, pos.y);
+          this.ball.setFieldPosition(cmd.at.x, cmd.at.y);
         }
         break;
       }
