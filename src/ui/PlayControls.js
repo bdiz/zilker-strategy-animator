@@ -12,7 +12,7 @@ export default class PlayControls {
     this.speedOptions = document.getElementById("speed-options");
     this.stepLabel = document.getElementById("step-label");
     this.progressSlider = document.getElementById("progress-slider");
-    this.progressLabel = document.getElementById("progress-label");
+    
 
     this.setupPlaylist();
     this.setupControls();
@@ -90,7 +90,6 @@ export default class PlayControls {
       const total = this.scene.animationRunner.getTotalGroups();
       if (total === 0) return;
       const target = parseInt(this.progressSlider.value, 10);
-      this.progressLabel.textContent = `${target}/${total}`;
       this.playIcon.textContent = "\u25B6";
       this.scene.seekTo(target);
     });
@@ -100,7 +99,6 @@ export default class PlayControls {
       const total = this.scene.animationRunner.getTotalGroups();
       if (total === 0) return;
       const target = parseInt(this.progressSlider.value, 10);
-      this.progressLabel.textContent = `${target}/${total}`;
       this.playIcon.textContent = "\u25B6";
       this.scene.seekTo(target);
     });
@@ -110,7 +108,6 @@ export default class PlayControls {
     if (this._draggingProgress) return;
     this.progressSlider.max = total > 0 ? total : 1;
     this.progressSlider.value = current;
-    this.progressLabel.textContent = `${current}/${total}`;
   }
 
   highlightPlay(index) {
