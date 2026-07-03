@@ -1,6 +1,8 @@
 import Phaser from "phaser";
 import Player from "../objects/Player.js";
 import Ball from "../objects/Ball.js";
+import AnimationRunner from "../animation/AnimationRunner.js";
+import PlayInterpreter from "../animation/PlayInterpreter.js";
 import {
   FIELD, PLAYER_IDS, FORMATIONS, RUN_SPEED, TICK_MS, PLAYER_RADIUS,
   getLayout, setLayout, computeLayout, toField, toScreen,
@@ -55,6 +57,8 @@ export default class ActionEditorScene extends Phaser.Scene {
     this.pathGraphics = null;
     this.livePathGraphics = null;
     this.formationName = "diamond";
+    this.previewMode = false;
+    this.animationRunner = null;
 
     this.playerActions = {
       GK: [], CM: [], LB: [], RB: [], LM: [], RM: [], FWD: [],
@@ -632,7 +636,81 @@ export default class ActionEditorScene extends Phaser.Scene {
     this.notifyActionChange();
   }
 
-  update() {
-    if (this.ball) this.ball.update();
+  startPreview() {
+    const totalActions = Object.values(this.playerActions).reduce((sum, a) => sum + a.length, 0);
+    if (totalActions === 0) {
+      console.warn("No actions to preview");
+      return;
+    }
+
+    Object.values(this.players).forEach((p) => p.disableDrag());
+    this.ball.disableDrag();
+
+    if (this.pathGraphics) {
+      this.pathGraphics.setVisible(false);
+    }
+
+    const playObj = this.buildPreviewPlay();
+    const interpreter = new PlayInterpreter(playObj);
+
+    this.animationRunner = new AnimationRunner(this, this.players, this.ball);
+    this.animationRunner.callbacks.onPlayEnd = () => this.stopPreview();
+    this.animationRunner.loadPlay(interpreter);
+    this.animationRunner.play();
+
+    this.previewMode = true;
+  }
+
+  stopPreview() {
+    if (this.animationRunner) {
+      this.animationRunner.stop();
+      this.animationRunner = null;
+    }
+
+    this.previewMode = false;
+
+    Object.values(this.players).forEach((p) => p.enableDrag());
+    this.ball.enableDrag();
+
+    this.redrawAllPaths();
+
+    this.events.emit("preview-ended");
+  }
+
+  buildPreviewPlay() {
+    let firstCarrierId = null;
+    for (const [playerId, actions] of Object.entries(this.playerActions)) {
+      for (const a of actions) {
+        if (a.action === "pass" || a.action === "shoot") {
+          firstCarrierId = playerId;
+          break;
+        }
+      }
+      if (firstCarrierId) break;
+    }
+
+    const commands = Object.entries(this.playerActions)
+      .filter(([_, actions]) => actions.length > 0)
+      .map(([player, actions]) => ({
+        player,
+        actions: actions.map((a) => ({ ...a })),
+      }));
+
+    return {
+      name: "Preview",
+      description: "Action Editor preview",
+      formation: this.formationName,
+      placement: firstCarrierId || null,
+      commands,
+    };
+  }
+
+  update(time, delta) {
+    if (this.previewMode && this.animationRunner) {
+      this.animationRunner.update(time, delta);
+      if (this.ball) this.ball.update();
+    } else if (this.ball) {
+      this.ball.update();
+    }
   }
 }

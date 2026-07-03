@@ -42,6 +42,7 @@ export default class EditorControls {
     actPanel.style.cssText = "display:none;align-items:center;gap:10px;flex-wrap:wrap;";
     actPanel.innerHTML = `<span style="font-size:12px;color:#f0c040;">Action Editor</span>
 <span id="action-summary" style="font-size:11px;color:#88aacc;flex:1;">No actions recorded</span>
+<button id="btn-play-preview" class="ec-btn">Play</button>
 <button id="btn-copy-play" class="ec-btn">Copy to Clipboard</button>
 <button id="btn-clear-action" class="ec-btn">Clear</button>`;
     bar.appendChild(actPanel);
@@ -69,6 +70,14 @@ export default class EditorControls {
   }
 
   setupActionControls() {
+    document.getElementById("btn-play-preview").addEventListener("click", () => {
+      const scene = this.game.scene.getScene("ActionEditorScene");
+      if (scene && scene.startPreview) {
+        scene.startPreview();
+        document.getElementById("btn-play-preview").disabled = true;
+      }
+    });
+
     document.getElementById("btn-copy-play").addEventListener("click", () => {
       const scene = this.game.scene.getScene("ActionEditorScene");
       if (scene && scene.copyToClipboard) scene.copyToClipboard();
@@ -80,6 +89,13 @@ export default class EditorControls {
         scene.clearAll();
       }
     });
+
+    const scene = this.game.scene.getScene("ActionEditorScene");
+    if (scene) {
+      scene.events.on("preview-ended", () => {
+        document.getElementById("btn-play-preview").disabled = false;
+      });
+    }
   }
 
   showFormationEditor() {
