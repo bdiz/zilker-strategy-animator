@@ -67,6 +67,23 @@ export default class PlayControls {
       subContainer.appendChild(btn);
     });
     this.playlistEl.appendChild(subContainer);
+
+    const playActionHeader = document.createElement("div");
+    playActionHeader.style.cssText = "font-size:12px;color:#8899aa;padding:6px 4px 2px;";
+    playActionHeader.textContent = "From Plays";
+    this.playlistEl.appendChild(playActionHeader);
+
+    const playSubContainer = document.createElement("div");
+    playSubContainer.style.cssText = "display:flex;flex-direction:column;gap:3px;padding-left:8px;margin-bottom:4px;";
+    allPlays.forEach((play, index) => {
+      const btn = document.createElement("button");
+      btn.className = "play-btn";
+      btn.style.cssText = "font-size:12px;padding:6px 8px;";
+      btn.textContent = play.name;
+      btn.addEventListener("click", () => this.openActionEditorWithPlay(index));
+      playSubContainer.appendChild(btn);
+    });
+    this.playlistEl.appendChild(playSubContainer);
   }
 
   openFormationEditor() {
@@ -95,6 +112,23 @@ export default class PlayControls {
 
     game.scene.run("ActionEditorScene");
     this.editorControls.showActionEditor(formationName);
+    window.playSelected = true;
+    closeMenu();
+  }
+
+  openActionEditorWithPlay(playIndex) {
+    const game = this.scene.game;
+    const playData = allPlays[playIndex];
+    this.scene.animationRunner.stop();
+    this.scene.scene.pause();
+
+    if (!this.editorControls) {
+      this.editorControls = new EditorControls(game);
+    }
+
+    window.__pendingActionEditorPlay = playData;
+    game.scene.run("ActionEditorScene");
+    this.editorControls.showActionEditor(playData.formation);
     window.playSelected = true;
     closeMenu();
   }

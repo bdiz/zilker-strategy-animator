@@ -76,7 +76,14 @@ export default class ActionEditorScene extends Phaser.Scene {
     this.createPlayers();
     this.createBall();
     this.setupDrag();
-    this.setFormation("diamond");
+
+    const pending = window.__pendingActionEditorPlay;
+    if (pending) {
+      window.__pendingActionEditorPlay = null;
+      this.loadPlayData(pending);
+    } else {
+      this.setFormation("diamond");
+    }
 
     this.events.emit("editor-ready");
   }
@@ -193,6 +200,38 @@ export default class ActionEditorScene extends Phaser.Scene {
       const p = this.players[id];
       if (p) p.setFieldPosition(pos.x, pos.y);
     });
+  }
+
+  loadPlayData(playData) {
+    this.setFormation(playData.formation);
+
+    this.playerActions = {
+      GK: [], CM: [], LB: [], RB: [], LM: [], RM: [], FWD: [],
+    };
+
+    playData.commands.forEach(({ player, actions }) => {
+      if (this.playerActions[player] !== undefined) {
+        this.playerActions[player] = actions.map((a) => ({ ...a }));
+      }
+    });
+
+    if (playData.placement) {
+      this.ball.detach();
+      this.ballCarrier = null;
+      if (typeof playData.placement === "string") {
+        const p = this.players[playData.placement];
+        if (p) {
+          this.ball.attachTo(p);
+          this.ballCarrier = p;
+          this.ball.update();
+        }
+      } else if (typeof playData.placement === "object" && playData.placement.x != null) {
+        this.ball.setFieldPosition(playData.placement.x, playData.placement.y);
+      }
+    }
+
+    this.redrawAllPaths();
+    this.notifyActionChange();
   }
 
   setupDrag() {

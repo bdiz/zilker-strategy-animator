@@ -135,12 +135,13 @@ Visible when `DEV_MODE = true` (auto-enabled during `npm run dev` via `import.me
 - "Save Formation" logs JSON to console and copies to clipboard
 
 ### Action Editor
-- Select a formation from the sidebar dropdown to start
-- All players snap to that formation, ball starts on sideline
+- Select a formation from the sidebar dropdown to start, or click any play under "From Plays" to load it with existing actions
+- All players snap to that formation, ball starts on sideline (or at the play's placement)
 - **Recording runs**: Drag a player freely across the field. Path is sampled, simplified (Ramer-Douglas-Peucker), and recorded as a `run` action with waypoints. Live path line drawn during drag.
 - **Recording passes**: Drag the ball from its carrier to a target coordinate → `pass` action with `target{x,y}`
 - **Recording shots**: Drag the ball to the goal area → `shoot` action
 - Actions are recorded per-player, sequentially. Each run/pass/shoot appends to the player's action list with cumulative delay.
+- Clicking a play under "From Plays" pre-loads its actions so you can edit/resequence them
 - "Log Full Play" outputs the complete play JSON (with `formation` + `placement`) to console and clipboard
 
 ## Adding New Plays
