@@ -39,10 +39,7 @@ export default class AnimationRunner {
       if (typeof placement === "string") {
         const p = this.getPlayer(placement);
         if (p) {
-          this.ball.attachTo(p, 0, 0);
-          this.ball.fieldX = p.fieldX;
-          this.ball.fieldY = p.fieldY;
-          this.ball.update();
+          this.ball.placeBehind(p);
         }
       } else if (placement.x != null && placement.y != null) {
         this.ball.setFieldPosition(placement.x, placement.y);
@@ -437,10 +434,7 @@ export default class AnimationRunner {
       if (typeof placement === "string") {
         const p = this.getPlayer(placement);
         if (p) {
-          this.ball.attachTo(p, 0, 0);
-          this.ball.fieldX = p.fieldX;
-          this.ball.fieldY = p.fieldY;
-          this.ball.update();
+          this.ball.placeBehind(p);
         }
       } else if (placement.x != null && placement.y != null) {
         this.ball.setFieldPosition(placement.x, placement.y);

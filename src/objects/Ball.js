@@ -59,6 +59,20 @@ export default class Ball extends Phaser.GameObjects.Container {
     this.carrier = null;
   }
 
+  placeBehind(player, dx, dy) {
+    this.carrier = player;
+    const layout = getLayout() || { scale: 1 };
+    const dist = PLAYER_RADIUS * 0.8 * layout.scale;
+    const ox = dx != null ? dx : 0.7;
+    const oy = dy != null ? dy : 0.7;
+    const sx = player.x + ox * dist;
+    const sy = player.y + oy * dist;
+    this.setPosition(sx, sy);
+    const fp = toField(layout, sx, sy);
+    this.fieldX = fp.x;
+    this.fieldY = fp.y;
+  }
+
   update() {
     if (this.carrier) {
       const dir = this.carrier.getDirection();

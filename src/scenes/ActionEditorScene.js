@@ -225,9 +225,8 @@ export default class ActionEditorScene extends Phaser.Scene {
       if (typeof playData.placement === "string") {
         const p = this.players[playData.placement];
         if (p) {
-          this.ball.attachTo(p);
+          this.ball.placeBehind(p);
           this.ballCarrier = p;
-          this.ball.update();
         }
       } else if (typeof playData.placement === "object" && playData.placement.x != null) {
         this.ball.setFieldPosition(playData.placement.x, playData.placement.y);
@@ -271,9 +270,8 @@ export default class ActionEditorScene extends Phaser.Scene {
             const dx = dragX - this.ball.x;
             const dy = dragY - this.ball.y;
             if (Math.sqrt(dx * dx + dy * dy) < threshold) {
-              this.ball.attachTo(gameObject);
+              this.ball.placeBehind(gameObject);
               this.ballCarrier = gameObject;
-              this.ball.update();
             }
           }
         }
@@ -437,9 +435,8 @@ export default class ActionEditorScene extends Phaser.Scene {
         const dx = ball.x - p.x;
         const dy = ball.y - p.y;
         if (Math.sqrt(dx * dx + dy * dy) < threshold) {
-          ball.attachTo(p);
+          ball.placeBehind(p);
           this.ballCarrier = p;
-          ball.update();
           attached = true;
           break;
         }
