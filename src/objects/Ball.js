@@ -62,7 +62,7 @@ export default class Ball extends Phaser.GameObjects.Container {
   placeBehind(player, dx, dy) {
     this.carrier = player;
     const layout = getLayout() || { scale: 1 };
-    const dist = PLAYER_RADIUS * 0.8 * layout.scale;
+    const dist = PLAYER_RADIUS * 0.847 * layout.scale;
     const ox = dx != null ? dx : 0.7;
     const oy = dy != null ? dy : 0.7;
     const sx = player.x + ox * dist;
@@ -79,7 +79,7 @@ export default class Ball extends Phaser.GameObjects.Container {
       if (!dir) return;
 
       const layout = getLayout() || { scale: 1 };
-      const dist = PLAYER_RADIUS * 0.8 * layout.scale;
+      const dist = PLAYER_RADIUS * 0.847 * layout.scale;
       const sx = this.carrier.x + dir.x * dist;
       const sy = this.carrier.y + dir.y * dist;
       this.setPosition(sx, sy);

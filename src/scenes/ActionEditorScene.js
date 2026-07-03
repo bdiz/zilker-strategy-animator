@@ -266,7 +266,7 @@ export default class ActionEditorScene extends Phaser.Scene {
           gameObject.fieldY = f.y;
           this.recordPathPoint(gameObject, dragX, dragY);
           if (this.ball && !this.ball.carrier) {
-            const threshold = PLAYER_RADIUS * 2 * layout.scale;
+            const threshold = PLAYER_RADIUS * 2 * 0.44 * layout.scale;
             const dx = dragX - this.ball.x;
             const dy = dragY - this.ball.y;
             if (Math.sqrt(dx * dx + dy * dy) < threshold) {
@@ -428,7 +428,7 @@ export default class ActionEditorScene extends Phaser.Scene {
       this.drawBallDropLine(this.dragBallPrevCarrier, f);
     } else {
       let attached = false;
-      const threshold = PLAYER_RADIUS * 2 * (layout ? layout.scale : 1);
+      const threshold = PLAYER_RADIUS * 2 * 0.44 * (layout ? layout.scale : 1);
       for (const id of PLAYER_IDS) {
         const p = this.players[id];
         if (!p) continue;

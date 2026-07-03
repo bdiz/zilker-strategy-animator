@@ -359,7 +359,7 @@ export default class AnimationRunner {
 
     const layout = getLayout();
     if (!layout) return;
-    const threshold = PLAYER_RADIUS * 2 * layout.scale;
+    const threshold = PLAYER_RADIUS * 2 * 0.44 * layout.scale;
     const dx = player.x - this.ball.x;
     const dy = player.y - this.ball.y;
     if (Math.sqrt(dx * dx + dy * dy) < threshold) {
