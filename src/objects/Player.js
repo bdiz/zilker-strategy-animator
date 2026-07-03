@@ -7,6 +7,10 @@ export default class Player extends Phaser.GameObjects.Container {
     this.playerId = id;
     this.fieldX = 0;
     this.fieldY = 0;
+    this.prevFieldX = 0;
+    this.prevFieldY = 0;
+    this.velocityX = 0;
+    this.velocityY = 0;
 
     this.sprite = scene.add.image(0, 0, "smiley");
 
@@ -41,8 +45,12 @@ export default class Player extends Phaser.GameObjects.Container {
   }
 
   setFieldPosition(fieldX, fieldY) {
+    this.prevFieldX = this.fieldX;
+    this.prevFieldY = this.fieldY;
     this.fieldX = fieldX;
     this.fieldY = fieldY;
+    this.velocityX = this.fieldX - this.prevFieldX;
+    this.velocityY = this.fieldY - this.prevFieldY;
     const layout = getLayout() || { scale: 1, offsetX: 0, offsetY: 0 };
     const screen = toScreen(layout, { x: fieldX, y: fieldY });
     this.setPosition(screen.x, screen.y);
@@ -58,6 +66,16 @@ export default class Player extends Phaser.GameObjects.Container {
 
   hasBall(ball) {
     return ball && ball.carrier === this;
+  }
+
+  getDirection() {
+    const vx = this.velocityX;
+    const vy = this.velocityY;
+    const mag = Math.sqrt(vx * vx + vy * vy);
+    if (mag > 0.001) {
+      return { x: vx / mag, y: vy / mag };
+    }
+    return null;
   }
 
   enableDrag() {

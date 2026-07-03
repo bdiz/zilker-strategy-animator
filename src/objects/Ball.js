@@ -5,6 +5,7 @@ export default class Ball extends Phaser.GameObjects.Container {
   constructor(scene, x, y) {
     super(scene, x, y);
     this.carrier = null;
+    this.attachDir = { x: 0, y: -1 };
     this.fieldX = 0;
     this.fieldY = 0;
 
@@ -51,8 +52,14 @@ export default class Ball extends Phaser.GameObjects.Container {
     this.setPosition(screen.x, screen.y);
   }
 
-  attachTo(player) {
+  attachTo(player, dx, dy) {
     this.carrier = player;
+    const mag = Math.sqrt(dx * dx + dy * dy);
+    if (mag > 0.001) {
+      this.attachDir = { x: dx / mag, y: dy / mag };
+    } else {
+      this.attachDir = { x: 0, y: -1 };
+    }
   }
 
   detach() {
@@ -62,9 +69,16 @@ export default class Ball extends Phaser.GameObjects.Container {
   update() {
     if (this.carrier) {
       const layout = getLayout() || { scale: 1 };
-      const offset = PLAYER_RADIUS * 0.8 * layout.scale;
-      this.setPosition(this.carrier.x + offset, this.carrier.y + offset);
-      const fp = toField(layout, this.carrier.x + offset, this.carrier.y + offset);
+      const dist = PLAYER_RADIUS * 0.8 * layout.scale;
+
+      const dir = this.carrier.getDirection() || this.attachDir;
+      if (!dir) return;
+
+      const sx = this.carrier.x + dir.x * dist;
+      const sy = this.carrier.y + dir.y * dist;
+      this.setPosition(sx, sy);
+
+      const fp = toField(layout, sx, sy);
       this.fieldX = fp.x;
       this.fieldY = fp.y;
     }

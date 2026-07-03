@@ -39,7 +39,7 @@ export default class AnimationRunner {
       if (typeof placement === "string") {
         const p = this.getPlayer(placement);
         if (p) {
-          this.ball.attachTo(p);
+          this.ball.attachTo(p, 0, 0);
           this.ball.fieldX = p.fieldX;
           this.ball.fieldY = p.fieldY;
           this.ball.update();
@@ -273,6 +273,10 @@ export default class AnimationRunner {
           player.setPosition(screen.x, screen.y);
           player.fieldX = pos.x;
           player.fieldY = pos.y;
+          player.velocityX = player.fieldX - player.prevFieldX;
+          player.velocityY = player.fieldY - player.prevFieldY;
+          player.prevFieldX = player.fieldX;
+          player.prevFieldY = player.fieldY;
         }
         this.checkCollision(player);
         break;
@@ -351,7 +355,7 @@ export default class AnimationRunner {
     const dx = player.x - this.ball.x;
     const dy = player.y - this.ball.y;
     if (Math.sqrt(dx * dx + dy * dy) < threshold) {
-      this.ball.attachTo(player);
+      this.ball.attachTo(player, dx, dy);
     }
   }
 
@@ -422,7 +426,7 @@ export default class AnimationRunner {
       if (typeof placement === "string") {
         const p = this.getPlayer(placement);
         if (p) {
-          this.ball.attachTo(p);
+          this.ball.attachTo(p, 0, 0);
           this.ball.fieldX = p.fieldX;
           this.ball.fieldY = p.fieldY;
           this.ball.update();
