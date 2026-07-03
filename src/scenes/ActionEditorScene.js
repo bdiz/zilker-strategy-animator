@@ -198,6 +198,11 @@ export default class ActionEditorScene extends Phaser.Scene {
   setupDrag() {
     this.input.on("dragstart", (_pointer, gameObject) => {
       if (gameObject.playerId) {
+        if (this.ball && this.ball.carrier === gameObject) {
+          this.dragBallPrevCarrier = gameObject.playerId;
+          this.ball.detach();
+          this.ballCarrier = null;
+        }
         this.startPathRecording(gameObject);
       } else {
         if (gameObject.carrier) {
@@ -218,6 +223,16 @@ export default class ActionEditorScene extends Phaser.Scene {
           gameObject.fieldX = f.x;
           gameObject.fieldY = f.y;
           this.recordPathPoint(gameObject, dragX, dragY);
+          if (this.ball && !this.ball.carrier) {
+            const threshold = PLAYER_RADIUS * 2 * layout.scale;
+            const dx = dragX - this.ball.x;
+            const dy = dragY - this.ball.y;
+            if (Math.sqrt(dx * dx + dy * dy) < threshold) {
+              this.ball.attachTo(gameObject);
+              this.ballCarrier = gameObject;
+              this.ball.update();
+            }
+          }
         }
       }
     });
