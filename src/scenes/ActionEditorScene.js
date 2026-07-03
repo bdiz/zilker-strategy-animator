@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import Player from "../objects/Player.js";
 import Ball from "../objects/Ball.js";
 import {
-  FIELD, PLAYER_IDS, FORMATIONS, RUN_SPEED, TICK_MS,
+  FIELD, PLAYER_IDS, FORMATIONS, RUN_SPEED, TICK_MS, PLAYER_RADIUS,
   getLayout, setLayout, computeLayout, toField, toScreen,
 } from "../config.js";
 
@@ -371,9 +371,26 @@ export default class ActionEditorScene extends Phaser.Scene {
 
       this.drawBallDropLine(this.dragBallPrevCarrier, f);
     } else {
-      ball.setFieldPosition(f.x, f.y);
-      ball.detach();
-      this.ballCarrier = null;
+      let attached = false;
+      const threshold = PLAYER_RADIUS * 2 * (layout ? layout.scale : 1);
+      for (const id of PLAYER_IDS) {
+        const p = this.players[id];
+        if (!p) continue;
+        const dx = ball.x - p.x;
+        const dy = ball.y - p.y;
+        if (Math.sqrt(dx * dx + dy * dy) < threshold) {
+          ball.attachTo(p);
+          this.ballCarrier = p;
+          ball.update();
+          attached = true;
+          break;
+        }
+      }
+      if (!attached) {
+        ball.setFieldPosition(f.x, f.y);
+        ball.detach();
+        this.ballCarrier = null;
+      }
     }
 
     this.dragBallPrevCarrier = null;
@@ -515,7 +532,7 @@ export default class ActionEditorScene extends Phaser.Scene {
     return parts.join(" | ") || "No actions recorded";
   }
 
-  logFullPlay() {
+  copyToClipboard() {
     let firstCarrierId = null;
     for (const [playerId, actions] of Object.entries(this.playerActions)) {
       for (const a of actions) {
