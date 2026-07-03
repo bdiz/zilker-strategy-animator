@@ -31,12 +31,13 @@ export default class PlayInterpreter {
     let max = 0;
     for (const group of groups) {
       const actions = group.actions || [];
-      let end = 0;
+      let effectiveStart = 0;
       for (const action of actions) {
-        const aEnd = (action.delay || 0) + (action.duration || 0);
-        if (aEnd > end) end = aEnd;
+        effectiveStart = Math.max(action.delay || 0, effectiveStart);
+        const effectiveEnd = effectiveStart + (action.duration || 0);
+        if (effectiveEnd > max) max = effectiveEnd;
+        effectiveStart = effectiveEnd;
       }
-      if (end > max) max = end;
     }
     return max;
   }

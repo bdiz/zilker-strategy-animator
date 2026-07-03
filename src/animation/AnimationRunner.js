@@ -221,7 +221,15 @@ export default class AnimationRunner {
 
     while (idx < actions.length) {
       const action = actions[idx];
-      const actionStart = action.delay || 0;
+
+      if (action.action === "pass" && !action._startPos && (!this.ball || this.ball.carrier !== player)) {
+        break;
+      }
+
+      if (action._effectiveStart == null) {
+        action._effectiveStart = Math.max(action.delay || 0, tickIndex);
+      }
+      const actionStart = action._effectiveStart;
       const actionEnd = actionStart + (action.duration || 0);
 
       if (tickIndex < actionStart) {
@@ -229,7 +237,8 @@ export default class AnimationRunner {
       }
 
       if (tickIndex < actionEnd) {
-        const t = (tickIndex - actionStart) / action.duration;
+        const elapsed = tickIndex - actionStart;
+        const t = elapsed / action.duration;
         this.executeActionTick(action, player, t);
         return;
       }
@@ -238,6 +247,9 @@ export default class AnimationRunner {
         this.finalizeAction(action, player);
         idx++;
         timeline.currentActionIdx = idx;
+        if (idx < actions.length) {
+          actions[idx]._effectiveStart = Math.max(actions[idx].delay || 0, tickIndex);
+        }
       }
     }
 
