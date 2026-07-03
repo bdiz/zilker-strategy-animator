@@ -225,10 +225,6 @@ export default class AnimationRunner {
     while (idx < actions.length) {
       const action = actions[idx];
 
-      if (action.action === "pass" && !action._startPos && (!this.ball || this.ball.carrier !== player)) {
-        break;
-      }
-
       if (action._effectiveStart == null) {
         action._effectiveStart = Math.max(action.delay || 0, tickIndex);
       }
@@ -247,11 +243,20 @@ export default class AnimationRunner {
       }
 
       if (tickIndex >= actionEnd) {
-        this.finalizeAction(action, player);
-        idx++;
-        timeline.currentActionIdx = idx;
-        if (idx < actions.length) {
-          actions[idx]._effectiveStart = Math.max(actions[idx].delay || 0, tickIndex);
+        const isBallAction = action.action === "pass" || action.action === "shoot";
+
+        if (action._startPos || !isBallAction) {
+          this.finalizeAction(action, player);
+          idx++;
+          timeline.currentActionIdx = idx;
+          if (idx < actions.length) {
+            actions[idx]._effectiveStart = Math.max(actions[idx].delay || 0, tickIndex);
+          }
+        } else if (this.ball && this.ball.carrier === player) {
+          action._effectiveStart = tickIndex + (action.delay || 0);
+          break;
+        } else {
+          break;
         }
       }
     }
@@ -283,8 +288,11 @@ export default class AnimationRunner {
       }
       case "pass": {
         if (!action.target) break;
-        const startPos = action._startPos || this.getBallFieldPos();
-        if (!action._startPos) action._startPos = startPos;
+        if (!action._startPos) {
+          if (!this.ball || this.ball.carrier !== player) break;
+          action._startPos = this.getBallFieldPos();
+        }
+        const startPos = action._startPos;
         const eased = this.easeLinear(Math.min(t, 1));
         const pos = {
           x: startPos.x + (action.target.x - startPos.x) * eased,
@@ -301,8 +309,11 @@ export default class AnimationRunner {
       }
       case "shoot": {
         if (!action.target) break;
-        const startPos = action._startPos || this.getBallFieldPos();
-        if (!action._startPos) action._startPos = startPos;
+        if (!action._startPos) {
+          if (!this.ball || this.ball.carrier !== player) break;
+          action._startPos = this.getBallFieldPos();
+        }
+        const startPos = action._startPos;
         const eased = this.easeLinear(Math.min(t, 1));
         const pos = {
           x: startPos.x + (action.target.x - startPos.x) * eased,

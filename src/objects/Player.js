@@ -49,8 +49,6 @@ export default class Player extends Phaser.GameObjects.Container {
     this.prevFieldY = this.fieldY;
     this.fieldX = fieldX;
     this.fieldY = fieldY;
-    this.velocityX = this.fieldX - this.prevFieldX;
-    this.velocityY = this.fieldY - this.prevFieldY;
     const layout = getLayout() || { scale: 1, offsetX: 0, offsetY: 0 };
     const screen = toScreen(layout, { x: fieldX, y: fieldY });
     this.setPosition(screen.x, screen.y);

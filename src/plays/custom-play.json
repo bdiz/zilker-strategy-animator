@@ -33,7 +33,7 @@
         },
         {
           "action": "shoot",
-          "target": { "x": 166.6, "y": 0 },
+          "target": { "x": 166.6, "y": -17 },
           "duration": 8,
           "delay": 55
         }
@@ -63,7 +63,7 @@
           "action": "pass",
           "target": { "x": 74.9, "y": 117.4 },
           "duration": 8,
-          "delay": 0
+          "delay": 3
         }
       ]
     }
