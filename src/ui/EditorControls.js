@@ -40,9 +40,11 @@ export default class EditorControls {
     const actPanel = document.createElement("div");
     actPanel.id = "editor-action-controls";
     actPanel.style.cssText = "display:none;align-items:center;gap:10px;flex-wrap:wrap;";
-    actPanel.innerHTML = `<span style="font-size:12px;color:#f0c040;">Action Editor</span>
+    actPanel.innerHTML = `<button id="btn-play-preview" class="ec-btn" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;color:#f0c040;background:none;border:none;cursor:pointer;" onmouseover="this.style.color='#ffe070'" onmouseout="this.style.color='#f0c040'">
+  <svg viewBox="0 0 24 24" style="width:100%;height:100%;fill:currentColor;"><polygon points="6,4 20,12 6,20"/></svg>
+</button>
+<span style="font-size:12px;color:#f0c040;">Action Editor</span>
 <span id="action-summary" style="font-size:11px;color:#88aacc;flex:1;">No actions recorded</span>
-<button id="btn-play-preview" class="ec-btn">Play</button>
 <button id="btn-copy-play" class="ec-btn">Copy to Clipboard</button>
 <button id="btn-clear-action" class="ec-btn">Clear</button>`;
     bar.appendChild(actPanel);
@@ -51,6 +53,7 @@ export default class EditorControls {
     style.textContent = `
       .ec-btn{padding:6px 14px;background:#1a3355;color:#d0d8e8;border:1px solid #2a4a7a;border-radius:4px;cursor:pointer;font-size:13px;font-family:inherit}
       .ec-btn:hover{background:#2a4a7a;border-color:#f0c040}
+      #btn-play-preview:disabled{opacity:0.4;cursor:default}
     `;
     bar.appendChild(style);
 
