@@ -287,7 +287,7 @@ export default class AnimationRunner {
         if (!action.target) break;
         if (!action._startPos) {
           if (!this.ball || this.ball.carrier !== player) break;
-          action._startPos = this.getBallFieldPos();
+          action._startPos = { x: this.ball.fieldX, y: this.ball.fieldY };
         }
         const startPos = action._startPos;
         const eased = this.easeLinear(Math.min(t, 1));
@@ -308,7 +308,7 @@ export default class AnimationRunner {
         if (!action.target) break;
         if (!action._startPos) {
           if (!this.ball || this.ball.carrier !== player) break;
-          action._startPos = this.getBallFieldPos();
+          action._startPos = { x: this.ball.fieldX, y: this.ball.fieldY };
         }
         const startPos = action._startPos;
         const eased = this.easeLinear(Math.min(t, 1));

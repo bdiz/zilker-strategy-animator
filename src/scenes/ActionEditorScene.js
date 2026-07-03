@@ -526,7 +526,7 @@ export default class ActionEditorScene extends Phaser.Scene {
       const player = this.players[playerId];
       if (!player) return;
 
-      actions.forEach((action) => {
+      actions.forEach((action, actionIdx) => {
         if (action.action === "run" && action.path && action.path.length > 0) {
           this.pathGraphics.lineStyle(2, 0xffff88, 0.6);
           this.pathGraphics.beginPath();
@@ -547,27 +547,25 @@ export default class ActionEditorScene extends Phaser.Scene {
         }
 
         if (action.action === "pass" && action.target) {
-          if (player) {
-            const from = toScreen(layout, { x: player.fieldX, y: player.fieldY });
-            const to = toScreen(layout, action.target);
-            this.pathGraphics.lineStyle(1.5, 0x88ff88, 0.5);
-            this.pathGraphics.beginPath();
-            this.pathGraphics.moveTo(from.x, from.y);
-            this.pathGraphics.lineTo(to.x, to.y);
-            this.pathGraphics.strokePath();
-          }
+          const origin = this.getPassShootOrigin(playerId, actionIdx);
+          const from = toScreen(layout, origin);
+          const to = toScreen(layout, action.target);
+          this.pathGraphics.lineStyle(1.5, 0x88ff88, 0.5);
+          this.pathGraphics.beginPath();
+          this.pathGraphics.moveTo(from.x, from.y);
+          this.pathGraphics.lineTo(to.x, to.y);
+          this.pathGraphics.strokePath();
         }
 
         if (action.action === "shoot" && action.target) {
-          if (player) {
-            const from = toScreen(layout, { x: player.fieldX, y: player.fieldY });
-            const to = toScreen(layout, action.target);
-            this.pathGraphics.lineStyle(1.5, 0xff8888, 0.5);
-            this.pathGraphics.beginPath();
-            this.pathGraphics.moveTo(from.x, from.y);
-            this.pathGraphics.lineTo(to.x, to.y);
-            this.pathGraphics.strokePath();
-          }
+          const origin = this.getPassShootOrigin(playerId, actionIdx);
+          const from = toScreen(layout, origin);
+          const to = toScreen(layout, action.target);
+          this.pathGraphics.lineStyle(1.5, 0xff8888, 0.5);
+          this.pathGraphics.beginPath();
+          this.pathGraphics.moveTo(from.x, from.y);
+          this.pathGraphics.lineTo(to.x, to.y);
+          this.pathGraphics.strokePath();
         }
       });
     });
@@ -631,6 +629,26 @@ export default class ActionEditorScene extends Phaser.Scene {
     }
     this.clearLivePath();
     this.notifyActionChange();
+  }
+
+  getPassShootOrigin(playerId, currentActionIndex) {
+    const formation = FORMATIONS[this.formationName];
+    const startPos = formation && formation[playerId]
+      ? { x: formation[playerId].x, y: formation[playerId].y }
+      : { x: 0, y: 0 };
+
+    const actions = this.playerActions[playerId] || [];
+    let pos = { ...startPos };
+
+    for (let i = 0; i < currentActionIndex; i++) {
+      const a = actions[i];
+      if (a.action === "run" && a.path && a.path.length > 0) {
+        const last = a.path[a.path.length - 1];
+        pos = { x: last.x, y: last.y };
+      }
+    }
+
+    return pos;
   }
 
   startPreview() {
