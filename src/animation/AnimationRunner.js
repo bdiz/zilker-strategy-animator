@@ -40,6 +40,8 @@ export default class AnimationRunner {
         const p = this.getPlayer(placement);
         if (p) {
           this.ball.attachTo(p);
+          this.ball.fieldX = p.fieldX;
+          this.ball.fieldY = p.fieldY;
           this.ball.update();
         }
       } else if (placement.x != null && placement.y != null) {
@@ -340,6 +342,9 @@ export default class AnimationRunner {
 
   getBallFieldPos() {
     if (!this.ball) return { x: 0, y: 0 };
+    if (this.ball.carrier) {
+      return { x: this.ball.carrier.fieldX, y: this.ball.carrier.fieldY };
+    }
     return { x: this.ball.fieldX, y: this.ball.fieldY };
   }
 
@@ -403,6 +408,8 @@ export default class AnimationRunner {
         const p = this.getPlayer(placement);
         if (p) {
           this.ball.attachTo(p);
+          this.ball.fieldX = p.fieldX;
+          this.ball.fieldY = p.fieldY;
           this.ball.update();
         }
       } else if (placement.x != null && placement.y != null) {

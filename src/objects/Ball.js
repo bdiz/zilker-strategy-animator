@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { BALL_RADIUS, PLAYER_RADIUS, getLayout, toScreen } from "../config.js";
+import { BALL_RADIUS, PLAYER_RADIUS, getLayout, toField, toScreen } from "../config.js";
 
 export default class Ball extends Phaser.GameObjects.Container {
   constructor(scene, x, y) {
@@ -64,6 +64,9 @@ export default class Ball extends Phaser.GameObjects.Container {
       const layout = getLayout() || { scale: 1 };
       const offset = PLAYER_RADIUS * 0.8 * layout.scale;
       this.setPosition(this.carrier.x + offset, this.carrier.y + offset);
+      const fp = toField(layout, this.carrier.x + offset, this.carrier.y + offset);
+      this.fieldX = fp.x;
+      this.fieldY = fp.y;
     }
   }
 
