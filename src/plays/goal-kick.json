@@ -1,53 +1,38 @@
 {
   "name": "Goal Kick Build-Up",
   "description": "CM takes goal kick short to LB → carries up → plays to LM → switches to RM",
+  "formation": "goalKick",
+  "placement": { "x": 170, "y": 470 },
   "commands": [
-    [
-      { "action": "setFormation", "name": "goalKick" },
-      { "action": "placeBall", "at": { "x": 170, "y": 470 } }
-    ],
-    [
-      { "action": "walk", "player": "CM", "path": [
-        { "x": 160, "y": 440 }
-      ] },
-      { "action": "run", "player": "LB", "path": [
-        { "x": 80, "y": 360 }
-      ] }
-    ],
-    [
-      { "action": "pass", "from": "CM", "to": "LB", "duration": 600 }
-    ],
-    [
-      { "action": "run", "player": "LB", "path": [
-        { "x": 80, "y": 320 },
-        { "x": 85, "y": 270 },
-        { "x": 95, "y": 220 }
-      ] },
-      { "action": "run", "player": "CM", "path": [
-        { "x": 150, "y": 300 },
-        { "x": 170, "y": 250 }
-      ] },
-      { "action": "run", "player": "LM", "path": [
-        { "x": 120, "y": 200 }
-      ] }
-    ],
-    [
-      { "action": "pass", "from": "LB", "to": "LM", "duration": 600 }
-    ],
-    [
-      { "action": "run", "player": "LM", "path": [
-        { "x": 140, "y": 190 },
-        { "x": 170, "y": 180 }
-      ] }
-    ],
-    [
-      { "action": "pass", "from": "LM", "to": "RM", "duration": 800 }
-    ],
-    [
-      { "action": "run", "player": "RM", "path": [
-        { "x": 250, "y": 200 },
-        { "x": 260, "y": 230 }
-      ] }
-    ]
+    {
+      "player": "CM",
+      "actions": [
+        { "action": "run", "path": [{ "x": 160, "y": 440 }], "duration": 2, "delay": 0 },
+        { "action": "pass", "target": { "x": 80, "y": 360 }, "duration": 6, "delay": 2 },
+        { "action": "run", "path": [{ "x": 150, "y": 300 }, { "x": 170, "y": 250 }], "duration": 7, "delay": 8 }
+      ]
+    },
+    {
+      "player": "LB",
+      "actions": [
+        { "action": "run", "path": [{ "x": 80, "y": 360 }], "duration": 5, "delay": 0 },
+        { "action": "run", "path": [{ "x": 80, "y": 320 }, { "x": 85, "y": 270 }, { "x": 95, "y": 220 }], "duration": 13, "delay": 5 },
+        { "action": "pass", "target": { "x": 120, "y": 200 }, "duration": 6, "delay": 18 }
+      ]
+    },
+    {
+      "player": "LM",
+      "actions": [
+        { "action": "run", "path": [{ "x": 120, "y": 200 }], "duration": 10, "delay": 8 },
+        { "action": "run", "path": [{ "x": 140, "y": 190 }, { "x": 170, "y": 180 }], "duration": 4, "delay": 18 },
+        { "action": "pass", "target": { "x": 260, "y": 230 }, "duration": 8, "delay": 22 }
+      ]
+    },
+    {
+      "player": "RM",
+      "actions": [
+        { "action": "run", "path": [{ "x": 250, "y": 200 }, { "x": 260, "y": 230 }], "duration": 4, "delay": 30 }
+      ]
+    }
   ]
 }

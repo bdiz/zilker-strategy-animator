@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import Player from "../objects/Player.js";
 import Ball from "../objects/Ball.js";
 import {
-  FIELD, PLAYER_IDS, FORMATIONS,
+  FIELD, PLAYER_IDS, FORMATIONS, RUN_SPEED, TICK_MS,
   getLayout, setLayout, computeLayout, toField, toScreen,
 } from "../config.js";
 
@@ -51,17 +51,18 @@ export default class ActionEditorScene extends Phaser.Scene {
     this.players = {};
     this.ball = null;
     this.ballCarrier = null;
-    this.ballSetup = false;
     this.graphics = null;
     this.pathGraphics = null;
+    this.livePathGraphics = null;
     this.formationName = "diamond";
 
-    this.groups = [];
-    this.currentGroupIndex = 0;
-    this.lastGroupHadActions = false;
+    this.playerActions = {
+      GK: [], CM: [], LB: [], RB: [], LM: [], RM: [], FWD: [],
+    };
 
     this.recordingPath = null;
     this.recordingPlayerId = null;
+    this.dragBallPrevCarrier = null;
 
     this.handleResize = this.handleResize.bind(this);
 
@@ -86,7 +87,7 @@ export default class ActionEditorScene extends Phaser.Scene {
     const layout = computeLayout(w, h);
     setLayout(layout);
     this.drawPitch();
-    this.redrawPaths();
+    this.redrawAllPaths();
     Object.values(this.players).forEach((p) => p.refreshFromLayout());
     if (this.ball) this.ball.refreshFromLayout();
   }
@@ -190,34 +191,20 @@ export default class ActionEditorScene extends Phaser.Scene {
     if (!formation) return;
     Object.entries(formation).forEach(([id, pos]) => {
       const p = this.players[id];
-      if (p) {
-        p.setFieldPosition(pos.x, pos.y);
-      }
+      if (p) p.setFieldPosition(pos.x, pos.y);
     });
   }
 
-  newGroup() {
-    const last = this.groups[this.groups.length - 1];
-    if (last && last.length === 0) return;
-    this.groups.push([]);
-    this.currentGroupIndex = this.groups.length - 1;
-  }
-
-  ensureGroup() {
-    if (this.groups.length === 0) {
-      this.groups.push([]);
-      this.currentGroupIndex = 0;
-    }
-  }
-
   setupDrag() {
-    this.dragBallPrevCarrier = null;
-
     this.input.on("dragstart", (_pointer, gameObject) => {
       if (gameObject.playerId) {
         this.startPathRecording(gameObject);
       } else {
-        this.dragBallPrevCarrier = gameObject.carrier;
+        if (gameObject.carrier) {
+          this.dragBallPrevCarrier = gameObject.carrier.playerId;
+        } else {
+          this.dragBallPrevCarrier = null;
+        }
         gameObject.detach();
       }
     });
@@ -247,6 +234,7 @@ export default class ActionEditorScene extends Phaser.Scene {
   startPathRecording(player) {
     this.recordingPlayerId = player.playerId;
     this.recordingPath = [{ x: player.fieldX, y: player.fieldY }];
+    this.clearLivePath();
   }
 
   recordPathPoint(player, screenX, screenY) {
@@ -262,9 +250,47 @@ export default class ActionEditorScene extends Phaser.Scene {
     if (Math.sqrt(dx * dx + dy * dy) >= PATH_SAMPLE_DIST) {
       this.recordingPath.push({ x: f.x, y: f.y });
     }
+
+    this.drawLivePath();
+  }
+
+  drawLivePath() {
+    this.clearLivePath();
+    if (!this.recordingPath || this.recordingPath.length < 2) return;
+
+    const layout = getLayout();
+    if (!layout) return;
+
+    this.livePathGraphics = this.add.graphics();
+
+    this.livePathGraphics.lineStyle(2, 0xffff88, 0.8);
+    this.livePathGraphics.beginPath();
+    const first = this.recordingPath[0];
+    const sFirst = toScreen(layout, first);
+    this.livePathGraphics.moveTo(sFirst.x, sFirst.y);
+    for (let i = 1; i < this.recordingPath.length; i++) {
+      const sp = toScreen(layout, this.recordingPath[i]);
+      this.livePathGraphics.lineTo(sp.x, sp.y);
+    }
+    this.livePathGraphics.strokePath();
+
+    this.recordingPath.forEach((p) => {
+      const sp = toScreen(layout, p);
+      this.livePathGraphics.fillStyle(0xffff88, 0.9);
+      this.livePathGraphics.fillCircle(sp.x, sp.y, 2.5);
+    });
+  }
+
+  clearLivePath() {
+    if (this.livePathGraphics) {
+      this.livePathGraphics.destroy();
+      this.livePathGraphics = null;
+    }
   }
 
   endPathRecording(player) {
+    this.clearLivePath();
+
     if (!this.recordingPath || this.recordingPath.length < 2) {
       this.recordingPath = null;
       this.recordingPlayerId = null;
@@ -281,19 +307,25 @@ export default class ActionEditorScene extends Phaser.Scene {
       return;
     }
 
-    const cmd = {
-      action: "run",
-      player: player.playerId,
-      path: simplified.map((p) => ({
-        x: Math.round(p.x * 10) / 10,
-        y: Math.round(p.y * 10) / 10,
-      })),
-    };
+    const playerId = player.playerId;
+    const pathLength = this.computePathLength(simplified);
+    const duration = Math.ceil(pathLength / RUN_SPEED / TICK_MS * 1000);
+    const delay = this.computeDelay(playerId);
 
-    this.ensureGroup();
-    this.groups[this.currentGroupIndex].push(cmd);
-    this.logCommands();
-    this.redrawPaths();
+    const path = simplified.map((p) => ({
+      x: Math.round(p.x * 10) / 10,
+      y: Math.round(p.y * 10) / 10,
+    }));
+
+    this.playerActions[playerId].push({
+      action: "run",
+      path,
+      duration: Math.max(1, duration),
+      delay,
+    });
+
+    this.redrawAllPaths();
+    this.notifyActionChange();
 
     this.recordingPath = null;
     this.recordingPlayerId = null;
@@ -302,81 +334,94 @@ export default class ActionEditorScene extends Phaser.Scene {
   handleBallDrop(ball) {
     const layout = getLayout();
     if (!layout) return;
+    const f = toField(layout, ball.x, ball.y);
 
-    const droppedOn = this.findPlayerAt(ball.x, ball.y);
     const inGoal = this.isInGoal(ball.x, ball.y);
 
-    if (droppedOn && droppedOn !== this.dragBallPrevCarrier) {
-      if (this.dragBallPrevCarrier) {
-        const cmd = {
-          action: "pass",
-          from: this.dragBallPrevCarrier.playerId,
-          to: droppedOn.playerId,
-          duration: 800,
-        };
-        this.ensureGroup();
-        this.groups[this.currentGroupIndex].push(cmd);
-        this.logCommands();
-        this.ballSetup = true;
+    if (this.dragBallPrevCarrier) {
+      const delay = this.computeDelay(this.dragBallPrevCarrier);
+
+      if (inGoal) {
+        this.playerActions[this.dragBallPrevCarrier].push({
+          action: "shoot",
+          target: {
+            x: Math.round(f.x * 10) / 10,
+            y: ball.y < layout.offsetY + (FIELD.HEIGHT * layout.scale) / 2 ? 0 : FIELD.HEIGHT,
+          },
+          duration: 8,
+          delay,
+        });
+        ball.setFieldPosition(f.x, f.y);
+        ball.detach();
+        this.ballCarrier = null;
       } else {
-        this.ballSetup = true;
+        this.playerActions[this.dragBallPrevCarrier].push({
+          action: "pass",
+          target: {
+            x: Math.round(f.x * 10) / 10,
+            y: Math.round(f.y * 10) / 10,
+          },
+          duration: 8,
+          delay,
+        });
+        ball.setFieldPosition(f.x, f.y);
+        ball.detach();
+        this.ballCarrier = null;
       }
-      this.ballCarrier = droppedOn;
-      ball.attachTo(droppedOn);
-    } else if (droppedOn === this.dragBallPrevCarrier) {
-      ball.attachTo(droppedOn);
-      this.ballCarrier = droppedOn;
-    } else if (inGoal && this.dragBallPrevCarrier) {
-      const f = toField(layout, ball.x, ball.y);
-      const cmd = {
-        action: "shoot",
-        player: this.dragBallPrevCarrier.playerId,
-        target: {
-          x: Math.round((f ? f.x : FIELD.WIDTH / 2) * 10) / 10,
-          y: ball.y < layout.offsetY + (FIELD.HEIGHT * layout.scale) / 2 ? 0 : FIELD.HEIGHT,
-        },
-        duration: 500,
-      };
-      this.ensureGroup();
-      this.groups[this.currentGroupIndex].push(cmd);
-      this.logCommands();
-      this.ballCarrier = null;
-      this.ballSetup = true;
+
+      this.drawBallDropLine(this.dragBallPrevCarrier, f);
     } else {
-      const f = toField(layout, ball.x, ball.y);
-      ball.detach();
       ball.setFieldPosition(f.x, f.y);
+      ball.detach();
       this.ballCarrier = null;
-      if (this.dragBallPrevCarrier) {
-        const cmd = {
-          action: "placeBall",
-          at: { x: Math.round(f.x * 10) / 10, y: Math.round(f.y * 10) / 10 },
-        };
-        this.ensureGroup();
-        this.groups[this.currentGroupIndex].push(cmd);
-        this.logCommands();
-        this.ballSetup = true;
-      }
     }
 
     this.dragBallPrevCarrier = null;
-    this.redrawPaths();
+    this.redrawAllPaths();
+    this.notifyActionChange();
   }
 
-  findPlayerAt(screenX, screenY) {
-    const threshold = 30;
-    let closest = null;
-    let closestDist = threshold;
-    Object.values(this.players).forEach((p) => {
-      const dx = p.x - screenX;
-      const dy = p.y - screenY;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < closestDist) {
-        closestDist = dist;
-        closest = p;
-      }
+  drawBallDropLine(playerId, targetField) {
+    const layout = getLayout();
+    if (!layout) return;
+    const player = this.players[playerId];
+    if (!player) return;
+
+    const tempGfx = this.add.graphics();
+    const from = toScreen(layout, { x: player.fieldX, y: player.fieldY });
+    const to = toScreen(layout, targetField);
+
+    tempGfx.lineStyle(2, 0x88ff88, 0.7);
+    tempGfx.beginPath();
+    tempGfx.moveTo(from.x, from.y);
+    tempGfx.lineTo(to.x, to.y);
+    tempGfx.strokePath();
+
+    tempGfx.fillStyle(0x88ff88, 0.9);
+    tempGfx.fillCircle(to.x, to.y, 3);
+
+    this.time.delayedCall(800, () => {
+      tempGfx.destroy();
     });
-    return closest;
+  }
+
+  computeDelay(playerId) {
+    const actions = this.playerActions[playerId] || [];
+    let total = 0;
+    for (const a of actions) {
+      total += a.duration || 0;
+    }
+    return total;
+  }
+
+  computePathLength(path) {
+    let len = 0;
+    for (let i = 0; i < path.length - 1; i++) {
+      const dx = path[i + 1].x - path[i].x;
+      const dy = path[i + 1].y - path[i].y;
+      len += Math.sqrt(dx * dx + dy * dy);
+    }
+    return len;
   }
 
   isInGoal(screenX, screenY) {
@@ -394,7 +439,7 @@ export default class ActionEditorScene extends Phaser.Scene {
     );
   }
 
-  redrawPaths() {
+  redrawAllPaths() {
     if (this.pathGraphics) {
       this.pathGraphics.destroy();
       this.pathGraphics = null;
@@ -405,30 +450,34 @@ export default class ActionEditorScene extends Phaser.Scene {
 
     this.pathGraphics = this.add.graphics();
 
-    this.groups.forEach((group) => {
-      group.forEach((cmd) => {
-        if (cmd.action === "run" && cmd.path && cmd.path.length > 0) {
+    Object.entries(this.playerActions).forEach(([playerId, actions]) => {
+      const player = this.players[playerId];
+      if (!player) return;
+
+      actions.forEach((action) => {
+        if (action.action === "run" && action.path && action.path.length > 0) {
           this.pathGraphics.lineStyle(2, 0xffff88, 0.6);
           this.pathGraphics.beginPath();
-          const first = cmd.path[0];
+          const first = action.path[0];
           const sFirst = toScreen(layout, first);
           this.pathGraphics.moveTo(sFirst.x, sFirst.y);
-          for (let i = 1; i < cmd.path.length; i++) {
-            const sp = toScreen(layout, cmd.path[i]);
+          for (let i = 1; i < action.path.length; i++) {
+            const sp = toScreen(layout, action.path[i]);
             this.pathGraphics.lineTo(sp.x, sp.y);
           }
           this.pathGraphics.strokePath();
 
-          cmd.path.forEach((p) => {
+          action.path.forEach((p) => {
             const sp = toScreen(layout, p);
             this.pathGraphics.fillStyle(0xffff88, 0.8);
             this.pathGraphics.fillCircle(sp.x, sp.y, 2);
           });
         }
-        if (cmd.action === "pass" && cmd.from && cmd.to) {
-          const from = this.players[cmd.from];
-          const to = this.players[cmd.to];
-          if (from && to) {
+
+        if (action.action === "pass" && action.target) {
+          if (player) {
+            const from = toScreen(layout, { x: player.fieldX, y: player.fieldY });
+            const to = toScreen(layout, action.target);
             this.pathGraphics.lineStyle(1.5, 0x88ff88, 0.5);
             this.pathGraphics.beginPath();
             this.pathGraphics.moveTo(from.x, from.y);
@@ -436,14 +485,15 @@ export default class ActionEditorScene extends Phaser.Scene {
             this.pathGraphics.strokePath();
           }
         }
-        if (cmd.action === "shoot" && cmd.player && cmd.target) {
-          const player = this.players[cmd.player];
+
+        if (action.action === "shoot" && action.target) {
           if (player) {
-            const target = toScreen(layout, cmd.target);
+            const from = toScreen(layout, { x: player.fieldX, y: player.fieldY });
+            const to = toScreen(layout, action.target);
             this.pathGraphics.lineStyle(1.5, 0xff8888, 0.5);
             this.pathGraphics.beginPath();
-            this.pathGraphics.moveTo(player.x, player.y);
-            this.pathGraphics.lineTo(target.x, target.y);
+            this.pathGraphics.moveTo(from.x, from.y);
+            this.pathGraphics.lineTo(to.x, to.y);
             this.pathGraphics.strokePath();
           }
         }
@@ -451,36 +501,42 @@ export default class ActionEditorScene extends Phaser.Scene {
     });
   }
 
-  logCommands() {
-    const json = JSON.stringify(this.groups, null, 2);
-    console.log("=== Commands ===");
-    console.log(json);
-    navigator.clipboard.writeText(json).catch(() => {});
+  notifyActionChange() {
+    this.events.emit("actions-changed", this.getActionSummary());
+  }
+
+  getActionSummary() {
+    const parts = [];
+    Object.entries(this.playerActions).forEach(([id, actions]) => {
+      if (actions.length > 0) {
+        parts.push(`${id}: ${actions.length} action${actions.length > 1 ? "s" : ""}`);
+      }
+    });
+    return parts.join(" | ") || "No actions recorded";
   }
 
   logFullPlay() {
-    const preamble = [{ action: "setFormation", name: this.formationName }];
-
     let firstCarrierId = null;
-    for (const group of this.groups) {
-      for (const cmd of group) {
-        if (cmd.action === "pass" && cmd.from) { firstCarrierId = cmd.from; break; }
-        if (cmd.action === "shoot" && cmd.player) { firstCarrierId = cmd.player; break; }
+    for (const [playerId, actions] of Object.entries(this.playerActions)) {
+      for (const a of actions) {
+        if (a.action === "pass" || a.action === "shoot") {
+          firstCarrierId = playerId;
+          break;
+        }
       }
       if (firstCarrierId) break;
     }
 
-    if (firstCarrierId) {
-      preamble.push({ action: "placeBall", player: firstCarrierId });
-    }
-
-    const nonEmpty = this.groups.filter((g) => g.length > 0);
-    nonEmpty.unshift(preamble);
+    const commands = Object.entries(this.playerActions)
+      .filter(([_, actions]) => actions.length > 0)
+      .map(([player, actions]) => ({ player, actions }));
 
     const play = {
       name: "Custom Play",
       description: "Created with Action Editor",
-      commands: nonEmpty,
+      formation: this.formationName,
+      placement: firstCarrierId || null,
+      commands,
     };
     const json = JSON.stringify(play, null, 2);
     console.log("=== Full Play ===");
@@ -489,10 +545,11 @@ export default class ActionEditorScene extends Phaser.Scene {
   }
 
   clearAll() {
-    this.groups = [];
+    this.playerActions = {
+      GK: [], CM: [], LB: [], RB: [], LM: [], RM: [], FWD: [],
+    };
     this.dragBallPrevCarrier = null;
     this.ballCarrier = null;
-    this.ballSetup = false;
     this.setFormation(this.formationName);
     const sideY = FIELD.HEIGHT - 40 - SIDELINE_OFFSETS.GK * 30 - 20;
     this.ball.setFieldPosition(SIDELINE_X - 20, sideY);
@@ -500,7 +557,8 @@ export default class ActionEditorScene extends Phaser.Scene {
       this.pathGraphics.destroy();
       this.pathGraphics = null;
     }
-    this.logCommands();
+    this.clearLivePath();
+    this.notifyActionChange();
   }
 
   update() {

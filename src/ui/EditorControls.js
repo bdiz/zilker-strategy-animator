@@ -11,6 +11,14 @@ export default class EditorControls {
 
     this.setupFormationControls();
     this.setupActionControls();
+
+    const scene = game.scene.getScene("ActionEditorScene");
+    if (scene) {
+      scene.events.on("actions-changed", (summary) => {
+        const el = document.getElementById("action-summary");
+        if (el) el.textContent = summary;
+      });
+    }
   }
 
   buildEditorBar() {
@@ -33,8 +41,7 @@ export default class EditorControls {
     actPanel.id = "editor-action-controls";
     actPanel.style.cssText = "display:none;align-items:center;gap:10px;flex-wrap:wrap;";
     actPanel.innerHTML = `<span style="font-size:12px;color:#f0c040;">Action Editor</span>
-<button id="btn-new-group" class="ec-btn">New Group</button>
-<span id="group-label" style="font-size:12px;color:#f0c040;">Group 1</span>
+<span id="action-summary" style="font-size:11px;color:#88aacc;flex:1;">No actions recorded</span>
 <button id="btn-log-play" class="ec-btn">Log Full Play</button>
 <button id="btn-clear-action" class="ec-btn">Clear</button>`;
     bar.appendChild(actPanel);
@@ -62,14 +69,6 @@ export default class EditorControls {
   }
 
   setupActionControls() {
-    document.getElementById("btn-new-group").addEventListener("click", () => {
-      const scene = this.game.scene.getScene("ActionEditorScene");
-      if (scene && scene.newGroup) {
-        scene.newGroup();
-        document.getElementById("group-label").textContent = `Group ${scene.currentGroupIndex + 1}`;
-      }
-    });
-
     document.getElementById("btn-log-play").addEventListener("click", () => {
       const scene = this.game.scene.getScene("ActionEditorScene");
       if (scene && scene.logFullPlay) scene.logFullPlay();
@@ -79,7 +78,6 @@ export default class EditorControls {
       const scene = this.game.scene.getScene("ActionEditorScene");
       if (scene && scene.clearAll) {
         scene.clearAll();
-        document.getElementById("group-label").textContent = "Group 1";
       }
     });
   }
@@ -96,11 +94,15 @@ export default class EditorControls {
     this.editorControls.style.display = "block";
     this.formationPanel.style.display = "none";
     this.actionPanel.style.display = "flex";
-    document.getElementById("group-label").textContent = "Group 1";
 
     const scene = this.game.scene.getScene("ActionEditorScene");
     if (scene && scene.setFormation && FORMATIONS[formationName]) {
       scene.setFormation(formationName);
+    }
+
+    const summaryEl = document.getElementById("action-summary");
+    if (summaryEl && scene) {
+      summaryEl.textContent = scene.getActionSummary ? scene.getActionSummary() : "No actions recorded";
     }
   }
 

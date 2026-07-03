@@ -1,8 +1,7 @@
-import Phaser from "phaser";
-import { FORMATIONS, PLAYER_RADIUS, RUN_SPEED, WALK_SPEED, getLayout, toScreen, toField } from "../config.js";
-
-const LINE_COLOR = 0xffffff;
-const LINE_ALPHA = 0.6;
+import {
+  FORMATIONS, PLAYER_RADIUS, RUN_SPEED,
+  getLayout, toScreen, toField, TICK_MS,
+} from "../config.js";
 
 export default class AnimationRunner {
   constructor(scene, players, ball) {
@@ -10,37 +9,96 @@ export default class AnimationRunner {
     this.players = players;
     this.ball = ball;
     this.interpreter = null;
-    this.groupIndex = 0;
+    this.playerTimelines = [];
+    this.tickIndex = 0;
+    this.maxTicks = 0;
+    this.paused = true;
     this.speed = 1;
-    this.running = false;
-    this.tweens = [];
+    this.accumulator = 0;
+    this.callbacks = { onTickChange: null, onPlayEnd: null };
     this.graphics = null;
-    this.callbacks = { onStepChange: null, onPlayEnd: null, onProgress: null };
+    this.prevTickStates = [];
+    this.nextTickStates = [];
   }
 
   loadPlay(interpreter) {
     this.stop();
     this.interpreter = interpreter;
-    this.groupIndex = 0;
-    this.running = false;
+    this.tickIndex = 0;
+    this.accumulator = 0;
+    this.maxTicks = interpreter.getMaxTicks();
+
+    const formationName = interpreter.getFormation();
+    if (formationName) {
+      this.applyFormation(formationName);
+    }
+
+    const placement = interpreter.getPlacement();
+    if (placement && this.ball) {
+      this.ball.detach();
+      if (typeof placement === "string") {
+        const p = this.getPlayer(placement);
+        if (p) {
+          this.ball.attachTo(p);
+          this.ball.update();
+        }
+      } else if (placement.x != null && placement.y != null) {
+        this.ball.setFieldPosition(placement.x, placement.y);
+      }
+    }
+
+    this.buildTimelines();
   }
 
-  getTotalGroups() {
-    return this.interpreter ? this.interpreter.getGroups().length : 0;
+  buildTimelines() {
+    this.playerTimelines = [];
+    const groups = this.interpreter.getPlayerGroups();
+    for (const group of groups) {
+      const player = this.getPlayer(group.player);
+      if (!player) {
+        console.warn(`Player ${group.player} not found in timeline`);
+        continue;
+      }
+      const actions = (group.actions || []).map((a) => ({ ...a }));
+      this.playerTimelines.push({
+        player,
+        actions,
+        currentActionIdx: 0,
+        completed: actions.length === 0,
+      });
+    }
   }
 
-  getCurrentGroupIndex() {
-    return this.groupIndex;
+  applyFormation(name) {
+    const formation = FORMATIONS[name];
+    if (!formation || !this.players) return;
+    Object.entries(formation).forEach(([id, pos]) => {
+      const p = this.players[id];
+      if (p) p.setFieldPosition(pos.x, pos.y);
+    });
+  }
+
+  getPlayer(id) {
+    if (!this.players) return null;
+    const p = this.players[id];
+    if (!p) console.warn(`Player ${id} not found`);
+    return p;
   }
 
   setSpeed(speed) {
     this.speed = speed;
   }
 
+  play() {
+    this.paused = false;
+    this.accumulator = 0;
+  }
+
   stop() {
-    this.running = false;
-    this.tweens.forEach((t) => t.stop());
-    this.tweens = [];
+    this.paused = true;
+    this.accumulator = 0;
+    this.prevTickStates = [];
+    this.nextTickStates = [];
     this.clearGraphics();
   }
 
@@ -51,357 +109,319 @@ export default class AnimationRunner {
     }
   }
 
-  play() {
-    if (!this.interpreter) return;
-    this.running = true;
-    this.runGroup(this.groupIndex);
-  }
-
-  runGroup(index) {
-    if (!this.running) return;
-    const groups = this.interpreter.getGroups();
-    if (index >= groups.length) {
-      this.running = false;
-      this.groupIndex = groups.length;
-      this.ball.detach();
+  update(time, delta) {
+    if (this.paused) return;
+    if (this.tickIndex >= this.maxTicks) {
+      this.paused = true;
       if (this.callbacks.onPlayEnd) this.callbacks.onPlayEnd();
-      if (this.callbacks.onStepChange) this.callbacks.onStepChange("Play finished");
-      if (this.callbacks.onProgress) this.callbacks.onProgress(groups.length, groups.length);
+      if (this.callbacks.onTickChange) {
+        this.callbacks.onTickChange(this.tickIndex, this.maxTicks, "Play finished");
+      }
       return;
     }
 
-    const group = groups[index];
-    this.groupIndex = index;
-    if (this.callbacks.onStepChange) {
-      this.callbacks.onStepChange(`Step ${index + 1} of ${groups.length}`);
-    }
-    if (this.callbacks.onProgress) {
-      this.callbacks.onProgress(index, groups.length);
-    }
+    this.accumulator += delta * this.speed;
 
-    let maxDuration = 0;
-    const groupTweens = [];
-
-    group.forEach((cmd) => {
-      const dur = this.executeCommand(cmd, groupTweens);
-      if (dur > maxDuration) maxDuration = dur;
-    });
-
-    if (maxDuration <= 0) {
-      this.runGroup(index + 1);
-      return;
-    }
-
-    this.scene.time.delayedCall(maxDuration, () => {
-      if (this.running) {
-        groupTweens.forEach((t) => {
-          const idx = this.tweens.indexOf(t);
-          if (idx >= 0) this.tweens.splice(idx, 1);
-        });
-        group.forEach((cmd) => {
-          if (cmd.action === "pass") {
-            const to = this.getPlayer(cmd.to);
-            if (to) this.ball.attachTo(to);
-          }
-        });
-        this.clearGraphics();
-        this.runGroup(index + 1);
+    let advanced = 0;
+    while (this.accumulator >= TICK_MS && this.tickIndex < this.maxTicks) {
+      this.accumulator -= TICK_MS;
+      advanced++;
+      if (advanced === 1) {
+        this.captureState("prev");
       }
-    });
-    return maxDuration;
-  }
+      this.runTick(this.tickIndex);
+      this.tickIndex++;
 
-  executeCommand(cmd, groupTweens) {
-    switch (cmd.action) {
-      case "pass": return this.doPass(cmd, groupTweens);
-      case "run": return this.doRun(cmd, groupTweens);
-      case "walk": return this.doWalk(cmd, groupTweens);
-      case "shoot": return this.doShoot(cmd, groupTweens);
-      case "placeBall": return this.doPlaceBall(cmd);
-      case "setFormation": return this.doSetFormation(cmd);
-      default: return 0;
-    }
-  }
-
-  getPlayer(id) {
-    const p = this.players[id];
-    if (!p) console.warn(`Player ${id} not found`);
-    return p;
-  }
-
-  toScreen(p) {
-    const layout = getLayout();
-    if (!layout) return { x: p.x, y: p.y };
-    return {
-      x: layout.offsetX + p.x * layout.scale,
-      y: layout.offsetY + p.y * layout.scale,
-    };
-  }
-
-  doPass(cmd, groupTweens) {
-    const from = this.getPlayer(cmd.from);
-    const to = this.getPlayer(cmd.to);
-    if (!from || !to) return 0;
-
-    this.ball.detach();
-
-    const layout = getLayout() || { scale: 1 };
-    const offset = PLAYER_RADIUS * 0.8 * layout.scale;
-
-    const duration = (cmd.duration || 600) / this.speed;
-    const startX = this.ball.x;
-    const startY = this.ball.y;
-    const endX = to.x + offset;
-    const endY = to.y + offset;
-
-    const midX = (startX + endX) / 2;
-    const midY = (startY + endY) / 2 - 40;
-
-    this.drawPassArc(startX, startY, midX, midY, endX, endY, duration);
-
-    const tween = this.scene.tweens.add({
-      targets: this.ball,
-      x: { value: endX, duration },
-      y: { value: endY, duration },
-      ease: "Sine.easeInOut",
-    });
-    groupTweens.push(tween);
-    this.tweens.push(tween);
-    return duration;
-  }
-
-  doRun(cmd, groupTweens) {
-    const player = this.getPlayer(cmd.player);
-    if (!player || !cmd.path || cmd.path.length === 0) return 0;
-
-    const layout = getLayout() || { scale: 1, offsetX: 0, offsetY: 0 };
-    const endScreen = this.toScreen(cmd.path[cmd.path.length - 1]);
-    const startField = toField(layout, player.x, player.y);
-    const dx = endScreen.x - player.x;
-    const dy = endScreen.y - player.y;
-    const fieldDist = Math.sqrt(dx * dx + dy * dy) / layout.scale;
-    const computed = Math.round((fieldDist / RUN_SPEED) * 1000);
-    const duration = (cmd.duration || computed) / this.speed;
-
-    const tween = this.scene.tweens.add({
-      targets: player,
-      x: { value: endScreen.x, duration },
-      y: { value: endScreen.y, duration },
-      ease: "Linear",
-      onUpdate: () => {
-        const lay = getLayout() || { scale: 1, offsetX: 0, offsetY: 0 };
-        const f = toField(lay, player.x, player.y);
-        player.fieldX = f.x;
-        player.fieldY = f.y;
-      },
-    });
-    groupTweens.push(tween);
-    this.tweens.push(tween);
-    return duration;
-  }
-
-  doWalk(cmd, groupTweens) {
-    const player = this.getPlayer(cmd.player);
-    if (!player || !cmd.path || cmd.path.length === 0) return 0;
-
-    const layout = getLayout() || { scale: 1, offsetX: 0, offsetY: 0 };
-    const endScreen = this.toScreen(cmd.path[cmd.path.length - 1]);
-    const dx = endScreen.x - player.x;
-    const dy = endScreen.y - player.y;
-    const fieldDist = Math.sqrt(dx * dx + dy * dy) / layout.scale;
-    const computed = Math.round((fieldDist / WALK_SPEED) * 1000);
-    const duration = (cmd.duration || computed) / this.speed;
-
-    const tween = this.scene.tweens.add({
-      targets: player,
-      x: { value: endScreen.x, duration },
-      y: { value: endScreen.y, duration },
-      ease: "Linear",
-      onUpdate: () => {
-        const lay = getLayout() || { scale: 1, offsetX: 0, offsetY: 0 };
-        const f = toField(lay, player.x, player.y);
-        player.fieldX = f.x;
-        player.fieldY = f.y;
-      },
-    });
-    groupTweens.push(tween);
-    this.tweens.push(tween);
-    return duration;
-  }
-
-  doShoot(cmd, groupTweens) {
-    const player = this.getPlayer(cmd.player);
-    if (!player) return 0;
-
-    this.ball.detach();
-
-    const duration = (cmd.duration || 500) / this.speed;
-    const startX = this.ball.x;
-    const startY = this.ball.y;
-    const target = this.toScreen(cmd.target);
-    const endX = target.x;
-    const endY = target.y;
-
-    const midX = (startX + endX) / 2;
-    const midY = (startY + endY) / 2 - 30;
-
-    this.drawPassArc(startX, startY, midX, midY, endX, endY, duration);
-
-    const tween = this.scene.tweens.add({
-      targets: this.ball,
-      x: { value: endX, duration },
-      y: { value: endY, duration },
-      ease: "Sine.easeIn",
-      onComplete: () => { this.clearGraphics(); },
-    });
-    groupTweens.push(tween);
-    this.tweens.push(tween);
-    return duration;
-  }
-
-  doPlaceBall(cmd) {
-    if (cmd.player) {
-      const p = this.getPlayer(cmd.player);
-      if (p) {
-        this.ball.setFieldPosition(p.fieldX, p.fieldY);
+      if (this.callbacks.onTickChange) {
+        const label = this.tickIndex >= this.maxTicks ? "Play finished" : `Tick ${this.tickIndex}/${this.maxTicks}`;
+        this.callbacks.onTickChange(this.tickIndex, this.maxTicks, label);
       }
-    } else if (cmd.at) {
-      this.ball.setFieldPosition(cmd.at.x, cmd.at.y);
-    }
-    return 0;
-  }
 
-  doSetFormation(cmd) {
-    const formation = FORMATIONS[cmd.name];
-    if (!formation) return 0;
-    Object.entries(formation).forEach(([id, pos]) => {
-      const p = this.players[id];
-      if (p) {
-        p.setFieldPosition(pos.x, pos.y);
+      if (this.tickIndex >= this.maxTicks) {
+        this.paused = true;
+        if (this.callbacks.onPlayEnd) this.callbacks.onPlayEnd();
       }
-    });
-    this.ball.detach();
-    return 0;
-  }
-
-  drawPassArc(x1, y1, x2, y2, x3, y3, duration) {
-    this.clearGraphics();
-    this.graphics = this.scene.add.graphics();
-    this.graphics.lineStyle(2, LINE_COLOR, LINE_ALPHA);
-
-    const steps = Math.max(20, Math.floor(duration / 20));
-    const points = [];
-    for (let i = 0; i <= steps; i++) {
-      const t = i / steps;
-      const qx = (1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * x2 + t * t * x3;
-      const qy = (1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * y2 + t * t * y3;
-      points.push({ x: qx, y: qy });
     }
 
-    this.graphics.beginPath();
-    this.graphics.moveTo(points[0].x, points[0].y);
-    for (let i = 1; i < points.length; i++) {
-      this.graphics.lineTo(points[i].x, points[i].y);
+    if (advanced > 0) {
+      this.captureState("next");
     }
-    this.graphics.strokePath();
 
-    points.forEach((p) => {
-      this.graphics.fillStyle(LINE_COLOR, LINE_ALPHA * 0.5);
-      this.graphics.fillCircle(p.x, p.y, 1);
-    });
+    if (this.accumulator > 0 && this.tickIndex < this.maxTicks && this.prevTickStates.length > 0) {
+      const frac = this.accumulator / TICK_MS;
+      this.interpolateState(frac);
+    }
   }
 
-  drawDribblePath(points) {
-    this.clearGraphics();
-    this.graphics = this.scene.add.graphics();
-    this.graphics.lineStyle(1.5, 0xffff88, 0.4);
-    this.graphics.beginPath();
-    this.graphics.moveTo(points[0].x, points[0].y);
-    for (let i = 1; i < points.length; i++) {
-      this.graphics.lineTo(points[i].x, points[i].y);
-    }
-    this.graphics.strokePath();
-  }
-
-  snapToGroup(targetIndex) {
-    if (!this.interpreter) return;
-    const groups = this.interpreter.getGroups();
-    const total = groups.length;
-    if (total === 0) return;
-    targetIndex = Math.max(0, Math.min(targetIndex, total));
-
-    this.stop();
-
-    this.ball.detach();
-
-    const formation = FORMATIONS["diamond"];
-    if (formation) {
-      Object.entries(formation).forEach(([id, pos]) => {
-        const p = this.players[id];
-        if (p) {
-          p.setFieldPosition(pos.x, pos.y);
-        }
+  captureState(kind) {
+    const arr = kind === "prev" ? this.prevTickStates : this.nextTickStates;
+    arr.length = 0;
+    for (const timeline of this.playerTimelines) {
+      if (timeline.completed) continue;
+      const action = timeline.actions[timeline.currentActionIdx];
+      if (!action) continue;
+      arr.push({
+        player: timeline.player,
+        action,
+        playerX: timeline.player.fieldX,
+        playerY: timeline.player.fieldY,
+        ballX: this.ball ? this.ball.fieldX : 0,
+        ballY: this.ball ? this.ball.fieldY : 0,
+        ballCarrier: this.ball ? this.ball.carrier : null,
       });
     }
+  }
 
-    for (let i = 0; i < targetIndex; i++) {
-      const group = groups[i];
-      group.forEach((cmd) => this.snapCommand(cmd));
+  interpolateState(frac) {
+    const layout = getLayout();
+    if (!layout) return;
+
+    for (const next of this.nextTickStates) {
+      const prev = this.prevTickStates.find((s) => s.player === next.player);
+      if (!prev) continue;
+
+      const pPos = {
+        x: prev.playerX + (next.playerX - prev.playerX) * frac,
+        y: prev.playerY + (next.playerY - prev.playerY) * frac,
+      };
+      const screen = toScreen(layout, pPos);
+      next.player.setPosition(screen.x, screen.y);
+      next.player.fieldX = pPos.x;
+      next.player.fieldY = pPos.y;
     }
 
-    this.groupIndex = targetIndex;
-    this.running = false;
-
-    if (this.callbacks.onProgress) {
-      this.callbacks.onProgress(targetIndex, total);
-    }
-    if (this.callbacks.onStepChange) {
-      const label = targetIndex === total ? "Play finished" : `Step ${targetIndex + 1} of ${total}`;
-      this.callbacks.onStepChange(label);
+    if (this.ball) {
+      const nextBall = this.nextTickStates.find((s) => s.ballX != null);
+      const prevBall = this.prevTickStates.find((s) => s.ballX != null);
+      if (nextBall && prevBall && !nextBall.ballCarrier) {
+        const bPos = {
+          x: prevBall.ballX + (nextBall.ballX - prevBall.ballX) * frac,
+          y: prevBall.ballY + (nextBall.ballY - prevBall.ballY) * frac,
+        };
+        const screen = toScreen(layout, bPos);
+        this.ball.setPosition(screen.x, screen.y);
+        this.ball.fieldX = bPos.x;
+        this.ball.fieldY = bPos.y;
+      }
     }
   }
 
-  snapCommand(cmd) {
-    switch (cmd.action) {
-      case "pass": {
-        const to = this.getPlayer(cmd.to);
-        if (to) {
-          this.ball.detach();
-          this.ball.attachTo(to);
-        }
+  runTick(tickIndex) {
+    for (const timeline of this.playerTimelines) {
+      if (timeline.completed) continue;
+      this.processTimelineTick(timeline, tickIndex);
+    }
+  }
+
+  processTimelineTick(timeline, tickIndex) {
+    const { player, actions } = timeline;
+    let idx = timeline.currentActionIdx;
+
+    while (idx < actions.length) {
+      const action = actions[idx];
+      const actionStart = action.delay || 0;
+      const actionEnd = actionStart + (action.duration || 0);
+
+      if (tickIndex < actionStart) {
         break;
       }
-      case "run":
-      case "walk": {
-        const player = this.getPlayer(cmd.player);
-        if (player && cmd.path && cmd.path.length > 0) {
-          const end = cmd.path[cmd.path.length - 1];
-          player.setFieldPosition(end.x, end.y);
+
+      if (tickIndex < actionEnd) {
+        const t = (tickIndex - actionStart) / action.duration;
+        this.executeActionTick(action, player, t);
+        return;
+      }
+
+      if (tickIndex >= actionEnd) {
+        this.finalizeAction(action, player);
+        idx++;
+        timeline.currentActionIdx = idx;
+      }
+    }
+
+    if (idx >= actions.length) {
+      timeline.completed = true;
+    }
+  }
+
+  executeActionTick(action, player, t) {
+    const layout = getLayout();
+
+    switch (action.action) {
+      case "run": {
+        if (!action.path || action.path.length === 0) break;
+        const pos = this.lerpPath(action.path, Math.min(t, 1));
+        if (layout) {
+          const screen = toScreen(layout, pos);
+          player.setPosition(screen.x, screen.y);
+          player.fieldX = pos.x;
+          player.fieldY = pos.y;
+        }
+        this.checkCollision(player);
+        break;
+      }
+      case "pass": {
+        if (!action.target) break;
+        const startPos = action._startPos || this.getBallFieldPos();
+        if (!action._startPos) action._startPos = startPos;
+        const eased = this.easeLinear(Math.min(t, 1));
+        const pos = {
+          x: startPos.x + (action.target.x - startPos.x) * eased,
+          y: startPos.y + (action.target.y - startPos.y) * eased,
+        };
+        if (layout) {
+          const screen = toScreen(layout, pos);
+          this.ball.setPosition(screen.x, screen.y);
+          this.ball.fieldX = pos.x;
+          this.ball.fieldY = pos.y;
+          this.ball.detach();
         }
         break;
       }
       case "shoot": {
-        this.ball.detach();
-        if (cmd.target) {
-          this.ball.setFieldPosition(cmd.target.x, cmd.target.y);
+        if (!action.target) break;
+        const startPos = action._startPos || this.getBallFieldPos();
+        if (!action._startPos) action._startPos = startPos;
+        const eased = this.easeLinear(Math.min(t, 1));
+        const pos = {
+          x: startPos.x + (action.target.x - startPos.x) * eased,
+          y: startPos.y + (action.target.y - startPos.y) * eased,
+        };
+        if (layout) {
+          const screen = toScreen(layout, pos);
+          this.ball.setPosition(screen.x, screen.y);
+          this.ball.fieldX = pos.x;
+          this.ball.fieldY = pos.y;
+          this.ball.detach();
         }
         break;
       }
-      case "placeBall": {
-        if (cmd.player) {
-          const p = this.getPlayer(cmd.player);
-          if (p) {
-            this.ball.setFieldPosition(p.fieldX, p.fieldY);
-          }
-        } else if (cmd.at) {
-          this.ball.setFieldPosition(cmd.at.x, cmd.at.y);
+    }
+  }
+
+  finalizeAction(action, player) {
+    const layout = getLayout();
+    switch (action.action) {
+      case "run": {
+        if (action.path && action.path.length > 0) {
+          const end = action.path[action.path.length - 1];
+          player.setFieldPosition(end.x, end.y);
+          this.checkCollision(player);
         }
         break;
       }
-      case "setFormation": {
-        this.doSetFormation(cmd);
+      case "pass":
+      case "shoot": {
+        if (action.target) {
+          const screen = toScreen(layout, action.target);
+          this.ball.setPosition(screen.x, screen.y);
+          this.ball.fieldX = action.target.x;
+          this.ball.fieldY = action.target.y;
+          this.ball.detach();
+        }
         break;
       }
+    }
+  }
+
+  checkCollision(player) {
+    if (!this.ball) return;
+    if (this.ball.carrier) return;
+
+    const layout = getLayout();
+    if (!layout) return;
+    const threshold = PLAYER_RADIUS * 2 * layout.scale;
+    const dx = player.x - this.ball.x;
+    const dy = player.y - this.ball.y;
+    if (Math.sqrt(dx * dx + dy * dy) < threshold) {
+      this.ball.attachTo(player);
+    }
+  }
+
+  getBallFieldPos() {
+    if (!this.ball) return { x: 0, y: 0 };
+    return { x: this.ball.fieldX, y: this.ball.fieldY };
+  }
+
+  lerpPath(path, t) {
+    if (path.length === 0) return { x: 0, y: 0 };
+    if (path.length === 1) return path[0];
+    if (t >= 1) return path[path.length - 1];
+
+    const totalLen = this.pathLength(path);
+    if (totalLen === 0) return path[0];
+
+    const targetDist = t * totalLen;
+    let accumulated = 0;
+
+    for (let i = 0; i < path.length - 1; i++) {
+      const a = path[i];
+      const b = path[i + 1];
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const segLen = Math.sqrt(dx * dx + dy * dy);
+      if (accumulated + segLen >= targetDist) {
+        const segT = (targetDist - accumulated) / segLen;
+        return { x: a.x + dx * segT, y: a.y + dy * segT };
+      }
+      accumulated += segLen;
+    }
+
+    return path[path.length - 1];
+  }
+
+  pathLength(path) {
+    let len = 0;
+    for (let i = 0; i < path.length - 1; i++) {
+      const dx = path[i + 1].x - path[i].x;
+      const dy = path[i + 1].y - path[i].y;
+      len += Math.sqrt(dx * dx + dy * dy);
+    }
+    return len;
+  }
+
+  easeLinear(t) {
+    return t;
+  }
+
+  snapToTick(targetTick) {
+    if (!this.interpreter) return;
+    this.stop();
+    this.accumulator = 0;
+    this.prevTickStates = [];
+    this.nextTickStates = [];
+
+    const formationName = this.interpreter.getFormation();
+    if (formationName) {
+      this.applyFormation(formationName);
+    }
+
+    const placement = this.interpreter.getPlacement();
+    if (placement && this.ball) {
+      this.ball.detach();
+      if (typeof placement === "string") {
+        const p = this.getPlayer(placement);
+        if (p) {
+          this.ball.attachTo(p);
+          this.ball.update();
+        }
+      } else if (placement.x != null && placement.y != null) {
+        this.ball.setFieldPosition(placement.x, placement.y);
+      }
+    }
+
+    this.buildTimelines();
+    this.tickIndex = 0;
+    targetTick = Math.max(0, Math.min(targetTick, this.maxTicks));
+
+    for (let i = 0; i < targetTick; i++) {
+      this.runTick(i);
+    }
+    this.tickIndex = targetTick;
+
+    if (this.callbacks.onTickChange) {
+      const label = targetTick >= this.maxTicks ? "Play finished" : `Tick ${targetTick}/${this.maxTicks}`;
+      this.callbacks.onTickChange(targetTick, this.maxTicks, label);
     }
   }
 }

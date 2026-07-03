@@ -27,14 +27,12 @@ export default class PlayControls {
       this.stepLabel.textContent = desc || name;
     };
 
-    scene.animationRunner.callbacks.onStepChange = (text) => {
-      this.stepLabel.textContent = text;
+    scene.animationRunner.callbacks.onTickChange = (tick, maxTicks, label) => {
+      this.stepLabel.textContent = label;
+      this.updateProgress(tick, maxTicks);
     };
     scene.animationRunner.callbacks.onPlayEnd = () => {
       this.showPlayIcon();
-    };
-    scene.animationRunner.callbacks.onProgress = (current, total) => {
-      this.updateProgress(current, total);
     };
   }
 
@@ -127,15 +125,15 @@ export default class PlayControls {
 
     this.playIcon.addEventListener("click", () => {
       const runner = this.scene.animationRunner;
-      if (runner.running) {
+      if (!runner.paused) {
         runner.stop();
         this.showPlayIcon();
         this.stepLabel.textContent = "Paused";
       } else {
-        const total = runner.getTotalGroups();
-        if (runner.groupIndex >= total && total > 0) {
+        const maxTicks = runner.maxTicks;
+        if (runner.tickIndex >= maxTicks && maxTicks > 0) {
           this.scene.restart();
-          this.updateProgress(0, total);
+          this.updateProgress(0, maxTicks);
         }
         this.scene.play();
         this.showPauseIcon();
@@ -164,8 +162,8 @@ export default class PlayControls {
 
     this.progressSlider.addEventListener("input", () => {
       this._draggingProgress = true;
-      const total = this.scene.animationRunner.getTotalGroups();
-      if (total === 0) return;
+      const maxTicks = this.scene.animationRunner.maxTicks;
+      if (maxTicks === 0) return;
       const target = parseInt(this.progressSlider.value, 10);
       this.showPlayIcon();
       this.scene.seekTo(target);
@@ -173,8 +171,8 @@ export default class PlayControls {
 
     this.progressSlider.addEventListener("change", () => {
       this._draggingProgress = false;
-      const total = this.scene.animationRunner.getTotalGroups();
-      if (total === 0) return;
+      const maxTicks = this.scene.animationRunner.maxTicks;
+      if (maxTicks === 0) return;
       const target = parseInt(this.progressSlider.value, 10);
       this.showPlayIcon();
       this.scene.seekTo(target);
@@ -199,8 +197,8 @@ export default class PlayControls {
     this.scene.loadPlay(index);
     this.showPlayIcon();
     window.playSelected = true;
-    const total = this.scene.animationRunner.getTotalGroups();
-    this.updateProgress(0, total);
+    const maxTicks = this.scene.animationRunner.maxTicks;
+    this.updateProgress(0, maxTicks);
   }
 
   cleanupEditor() {
@@ -216,7 +214,6 @@ export default class PlayControls {
     }
     this.scene.scene.resume();
     this.scene.ensurePlayers();
-    this.scene.setFormation("diamond");
     this.scene.animationRunner.stop();
   }
 }
