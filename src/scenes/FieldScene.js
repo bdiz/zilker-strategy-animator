@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { FIELD, computeLayout, setLayout } from "../config.js";
+import { FIELD, computeLayout, setLayout, getLayout, toField } from "../config.js";
 
 export default class FieldScene extends Phaser.Scene {
   constructor() {
@@ -11,6 +11,13 @@ export default class FieldScene extends Phaser.Scene {
     this.scale.on("resize", this.handleResize, this);
     this.handleResize(this.scale.width, this.scale.height);
     this.scene.launch("PlayScene");
+
+    this.input.on("pointerdown", (pointer) => {
+      const layout = getLayout();
+      if (!layout) return;
+      const field = toField(layout, pointer.x, pointer.y);
+      console.log(`[${Math.round(field.x)}, ${Math.round(field.y)}]`);
+    });
   }
 
   handleResize() {

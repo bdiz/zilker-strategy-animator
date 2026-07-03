@@ -59,4 +59,15 @@ export default class Player extends Phaser.GameObjects.Container {
   hasBall(ball) {
     return ball && ball.carrier === this;
   }
+
+  enableDrag() {
+    this.setInteractive(new Phaser.Geom.Rectangle(-25, -25, 50, 50), Phaser.Geom.Rectangle.Contains);
+    this.scene.input.setDraggable(this);
+    this.input.useHandCursor = true;
+    this.input.alwaysEnabled = true;
+  }
+
+  disableDrag() {
+    this.disableInteractive();
+  }
 }

@@ -260,7 +260,12 @@ export default class AnimationRunner {
   }
 
   doPlaceBall(cmd) {
-    if (cmd.at) {
+    if (cmd.player) {
+      const p = this.getPlayer(cmd.player);
+      if (p) {
+        this.ball.setFieldPosition(p.fieldX, p.fieldY);
+      }
+    } else if (cmd.at) {
       this.ball.setFieldPosition(cmd.at.x, cmd.at.y);
     }
     return 0;
@@ -383,7 +388,12 @@ export default class AnimationRunner {
         break;
       }
       case "placeBall": {
-        if (cmd.at) {
+        if (cmd.player) {
+          const p = this.getPlayer(cmd.player);
+          if (p) {
+            this.ball.setFieldPosition(p.fieldX, p.fieldY);
+          }
+        } else if (cmd.at) {
           this.ball.setFieldPosition(cmd.at.x, cmd.at.y);
         }
         break;

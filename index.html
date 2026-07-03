@@ -149,8 +149,11 @@
     });
     backdrop.addEventListener('click', closeMenu);
 
-    document.querySelectorAll('#sidebar button, #sidebar .play-btn').forEach(btn => {
-      btn.addEventListener('click', closeMenu);
+    document.querySelectorAll('#sidebar .play-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        window.playSelected = true;
+        closeMenu();
+      });
     });
 
     openMenu();

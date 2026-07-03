@@ -66,4 +66,15 @@ export default class Ball extends Phaser.GameObjects.Container {
       this.setPosition(this.carrier.x + offset, this.carrier.y + offset);
     }
   }
+
+  enableDrag() {
+    this.setInteractive(new Phaser.Geom.Rectangle(-20, -20, 40, 40), Phaser.Geom.Rectangle.Contains);
+    this.scene.input.setDraggable(this);
+    this.input.useHandCursor = true;
+    this.input.alwaysEnabled = true;
+  }
+
+  disableDrag() {
+    this.disableInteractive();
+  }
 }

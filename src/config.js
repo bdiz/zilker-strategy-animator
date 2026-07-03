@@ -1,3 +1,5 @@
+export const DEV_MODE = import.meta.env.DEV;
+
 export const FIELD = {
   WIDTH: 340,
   HEIGHT: 520,
