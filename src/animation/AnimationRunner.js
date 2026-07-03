@@ -213,6 +213,9 @@ export default class AnimationRunner {
       if (timeline.completed) continue;
       this.processTimelineTick(timeline, tickIndex);
     }
+    for (const timeline of this.playerTimelines) {
+      this.checkCollision(timeline.player);
+    }
   }
 
   processTimelineTick(timeline, tickIndex) {
