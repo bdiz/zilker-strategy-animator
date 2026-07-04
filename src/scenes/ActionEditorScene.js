@@ -8,6 +8,7 @@ import {
   getLayout, setLayout, computeLayout, toField, toScreen,
 } from "../config.js";
 
+const BALL_DRAG_OFFSET = { x: 0, y: -50 };
 const PATH_SAMPLE_DIST = 15;
 
 function rdp(points, epsilon) {
@@ -311,7 +312,11 @@ export default class ActionEditorScene extends Phaser.Scene {
     });
 
     this.input.on("drag", (_pointer, gameObject, dragX, dragY) => {
-      gameObject.setPosition(dragX, dragY);
+      if (gameObject === this.ball) {
+        gameObject.setPosition(dragX + BALL_DRAG_OFFSET.x, dragY + BALL_DRAG_OFFSET.y);
+      } else {
+        gameObject.setPosition(dragX, dragY);
+      }
       if (gameObject.playerId) {
         const layout = getLayout();
         if (layout) {
@@ -519,7 +524,7 @@ export default class ActionEditorScene extends Phaser.Scene {
         ball.detach();
         this.ballCarrier = null;
       }
-    }
+}
 
     this.dragBallPrevCarrier = null;
     this.redrawAllPaths();
