@@ -1,6 +1,6 @@
 export const DEV_MODE = import.meta.env.DEV;
 
-export const TICK_MS = 100;
+export const TICK_MS = 143;
 
 export const FIELD = {
   WIDTH: 340,
