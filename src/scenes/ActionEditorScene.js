@@ -465,9 +465,6 @@ export default class ActionEditorScene extends Phaser.Scene {
           duration: 8,
           delay,
         });
-        ball.setFieldPosition(f.x, f.y);
-        ball.detach();
-        this.ballCarrier = null;
       } else {
         this.playerActions[this.dragBallPrevCarrier].push({
           action: "pass",
@@ -479,12 +476,29 @@ export default class ActionEditorScene extends Phaser.Scene {
           duration: 8,
           delay,
         });
+      }
+
+      this.drawBallDropLine(this.dragBallPrevCarrier, f);
+
+      let attached = false;
+      const threshold = PLAYER_RADIUS * 2 * 0.44 * (layout ? layout.scale : 1);
+      for (const id of PLAYER_IDS) {
+        const p = this.players[id];
+        if (!p) continue;
+        const dx = ball.x - p.x;
+        const dy = ball.y - p.y;
+        if (Math.sqrt(dx * dx + dy * dy) < threshold) {
+          ball.placeBehind(p);
+          this.ballCarrier = p;
+          attached = true;
+          break;
+        }
+      }
+      if (!attached) {
         ball.setFieldPosition(f.x, f.y);
         ball.detach();
         this.ballCarrier = null;
       }
-
-      this.drawBallDropLine(this.dragBallPrevCarrier, f);
     } else {
       let attached = false;
       const threshold = PLAYER_RADIUS * 2 * 0.44 * (layout ? layout.scale : 1);
@@ -820,6 +834,24 @@ export default class ActionEditorScene extends Phaser.Scene {
     this.ball.enableDrag();
 
     this.redrawAllPaths();
+
+    let firstCarrierId = null;
+    for (const [playerId, actions] of Object.entries(this.playerActions)) {
+      for (const a of actions) {
+        if (a.action === "pass" || a.action === "shoot") {
+          firstCarrierId = playerId;
+          break;
+        }
+      }
+      if (firstCarrierId) break;
+    }
+    if (firstCarrierId) {
+      const p = this.players[firstCarrierId];
+      if (p) {
+        this.ball.placeBehind(p);
+        this.ballCarrier = p;
+      }
+    }
 
     this.events.emit("preview-ended");
   }
