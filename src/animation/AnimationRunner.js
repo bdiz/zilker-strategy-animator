@@ -206,13 +206,16 @@ export default class AnimationRunner {
   }
 
   runTick(tickIndex) {
+    this._passShootPlayers = new Set();
     for (const timeline of this.playerTimelines) {
       if (timeline.completed) continue;
       this.processTimelineTick(timeline, tickIndex);
     }
     for (const timeline of this.playerTimelines) {
+      if (this._passShootPlayers.has(timeline.player)) continue;
       this.checkCollision(timeline.player);
     }
+    this._passShootPlayers = null;
   }
 
   processTimelineTick(timeline, tickIndex) {
@@ -235,7 +238,10 @@ export default class AnimationRunner {
       if (tickIndex < actionEnd) {
         const elapsed = tickIndex - actionStart;
         const t = elapsed / action.duration;
-        this.executeActionTick(action, player, t);
+        const executed = this.executeActionTick(action, player, t);
+        if (executed && (action.action === "pass" || action.action === "shoot")) {
+          this._passShootPlayers.add(player);
+        }
         return;
       }
 
@@ -244,6 +250,9 @@ export default class AnimationRunner {
 
         if (action._startPos || !isBallAction) {
           this.finalizeAction(action, player);
+          if (isBallAction) {
+            this._passShootPlayers.add(player);
+          }
           idx++;
           timeline.currentActionIdx = idx;
           if (idx < actions.length) {
@@ -268,7 +277,7 @@ export default class AnimationRunner {
 
     switch (action.action) {
       case "run": {
-        if (!action.path || action.path.length === 0) break;
+        if (!action.path || action.path.length === 0) return false;
         const pos = this.lerpPath(action.path, Math.min(t, 1));
         if (layout) {
           const screen = toScreen(layout, pos);
@@ -281,12 +290,15 @@ export default class AnimationRunner {
           player.prevFieldY = player.fieldY;
         }
         this.checkCollision(player);
-        break;
+        if (this.ball && this.ball.carrier === player) {
+          this.ball.update();
+        }
+        return true;
       }
       case "pass": {
-        if (!action.target) break;
+        if (!action.target) return false;
         if (!action._startPos) {
-          if (!this.ball || this.ball.carrier !== player) break;
+          if (!this.ball || this.ball.carrier !== player) return false;
           action._startPos = { x: this.ball.fieldX, y: this.ball.fieldY };
         }
         const startPos = action._startPos;
@@ -302,12 +314,12 @@ export default class AnimationRunner {
           this.ball.fieldY = pos.y;
           this.ball.detach();
         }
-        break;
+        return true;
       }
       case "shoot": {
-        if (!action.target) break;
+        if (!action.target) return false;
         if (!action._startPos) {
-          if (!this.ball || this.ball.carrier !== player) break;
+          if (!this.ball || this.ball.carrier !== player) return false;
           action._startPos = { x: this.ball.fieldX, y: this.ball.fieldY };
         }
         const startPos = action._startPos;
@@ -323,9 +335,10 @@ export default class AnimationRunner {
           this.ball.fieldY = pos.y;
           this.ball.detach();
         }
-        break;
+        return true;
       }
     }
+    return false;
   }
 
   finalizeAction(action, player) {
@@ -336,6 +349,9 @@ export default class AnimationRunner {
           const end = action.path[action.path.length - 1];
           player.setFieldPosition(end.x, end.y);
           this.checkCollision(player);
+          if (this.ball && this.ball.carrier === player) {
+            this.ball.update();
+          }
         }
         break;
       }

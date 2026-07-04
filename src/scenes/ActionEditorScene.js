@@ -219,6 +219,20 @@ export default class ActionEditorScene extends Phaser.Scene {
       }
     });
 
+    let ballPos;
+    if (playData.placement) {
+      if (typeof playData.placement === "string") {
+        const f = FORMATIONS[playData.formation];
+        const ppos = f && f[playData.placement] ? f[playData.placement] : null;
+        ballPos = ppos ? { x: ppos.x, y: ppos.y } : { x: SIDELINE_X, y: 170 };
+      } else {
+        ballPos = { x: playData.placement.x, y: playData.placement.y };
+      }
+    } else {
+      const sideY = FIELD.HEIGHT - 40 - SIDELINE_OFFSETS.GK * 30 - 20;
+      ballPos = { x: SIDELINE_X, y: sideY };
+    }
+
     if (playData.placement) {
       this.ball.detach();
       this.ballCarrier = null;
@@ -396,10 +410,12 @@ export default class ActionEditorScene extends Phaser.Scene {
 
     if (this.dragBallPrevCarrier) {
       const delay = this.computeDelay(this.dragBallPrevCarrier);
+      const ballStart = { x: ball.fieldX, y: ball.fieldY };
 
       if (inGoal) {
         this.playerActions[this.dragBallPrevCarrier].push({
           action: "shoot",
+          _ballStart: ballStart,
           target: {
             x: Math.round(f.x * 10) / 10,
             y: ball.y < layout.offsetY + (FIELD.HEIGHT * layout.scale) / 2 ? 0 : FIELD.HEIGHT,
@@ -413,6 +429,7 @@ export default class ActionEditorScene extends Phaser.Scene {
       } else {
         this.playerActions[this.dragBallPrevCarrier].push({
           action: "pass",
+          _ballStart: ballStart,
           target: {
             x: Math.round(f.x * 10) / 10,
             y: Math.round(f.y * 10) / 10,
@@ -456,11 +473,10 @@ export default class ActionEditorScene extends Phaser.Scene {
   drawBallDropLine(playerId, targetField) {
     const layout = getLayout();
     if (!layout) return;
-    const player = this.players[playerId];
-    if (!player) return;
+    if (!this.ball) return;
 
     const tempGfx = this.add.graphics();
-    const from = toScreen(layout, { x: player.fieldX, y: player.fieldY });
+    const from = toScreen(layout, { x: this.ball.fieldX, y: this.ball.fieldY });
     const to = toScreen(layout, targetField);
 
     tempGfx.lineStyle(2, 0x88ff88, 0.7);
@@ -632,6 +648,11 @@ export default class ActionEditorScene extends Phaser.Scene {
   }
 
   getPassShootOrigin(playerId, currentActionIndex) {
+    const a = this.playerActions[playerId]?.[currentActionIndex];
+    if (a && a._ballStart) {
+      return { ...a._ballStart };
+    }
+
     const formation = FORMATIONS[this.formationName];
     const startPos = formation && formation[playerId]
       ? { x: formation[playerId].x, y: formation[playerId].y }
