@@ -1,3 +1,3 @@
-import customPlay from './custom-play.json';
+import examplePlay from './example.json';
 
-export default [customPlay];
+export default [examplePlay];
