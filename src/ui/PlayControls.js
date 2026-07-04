@@ -106,13 +106,13 @@ export default class PlayControls {
     const formationBtn = document.createElement("button");
     formationBtn.className = "play-btn";
     formationBtn.dataset.editorKey = "formation-editor";
-    formationBtn.textContent = "✎ Formation Editor";
+    formationBtn.textContent = "New formation";
     formationBtn.addEventListener("click", () => navigate("editor/formation"));
     this.playlistEl.appendChild(formationBtn);
 
     const actionHeader = document.createElement("div");
     actionHeader.style.cssText = "font-size:12px;color:#8899aa;padding:8px 4px 2px;";
-    actionHeader.textContent = "✎ Action Editor";
+    actionHeader.textContent = "Add plays";
     this.playlistEl.appendChild(actionHeader);
 
     const subContainer = document.createElement("div");
@@ -122,7 +122,7 @@ export default class PlayControls {
       btn.className = "play-btn";
       btn.dataset.editorKey = "action-editor-" + name;
       btn.style.cssText = "font-size:12px;padding:6px 8px;";
-      btn.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+      btn.textContent = "New " + name.charAt(0).toUpperCase() + name.slice(1) + " play";
       btn.addEventListener("click", () => navigate("editor/action/" + formationSlug(name)));
       subContainer.appendChild(btn);
     });
@@ -130,7 +130,7 @@ export default class PlayControls {
 
     const playActionHeader = document.createElement("div");
     playActionHeader.style.cssText = "font-size:12px;color:#8899aa;padding:6px 4px 2px;";
-    playActionHeader.textContent = "From Plays";
+    playActionHeader.textContent = "Edit plays";
     this.playlistEl.appendChild(playActionHeader);
 
     const playSubContainer = document.createElement("div");
