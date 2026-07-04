@@ -1,6 +1,7 @@
 import allPlays from "../plays/index.js";
 import { DEV_MODE, FORMATIONS } from "../config.js";
 import EditorControls from "./EditorControls.js";
+import { initRouter, navigate, toSlug, playSlug, formationSlug, lookupSlug } from "./Router.js";
 
 export default class PlayControls {
   constructor(scene) {
@@ -42,6 +43,55 @@ export default class PlayControls {
         this.refreshActiveButton();
       }
     });
+
+    this._destroyRouter = initRouter((route) => this.handleRoute(route));
+  }
+
+  handleRoute(route) {
+    switch (route.page) {
+      case "play": {
+        const entry = lookupSlug("play", route.slug);
+        if (entry) {
+          this.loadPlay(entry.index);
+          closeMenu();
+        } else {
+          this.handleRoute({ page: "home" });
+        }
+        break;
+      }
+      case "editor-formation": {
+        if (!DEV_MODE) { this.handleRoute({ page: "home" }); return; }
+        this.openFormationEditor();
+        closeMenu();
+        break;
+      }
+      case "editor-action": {
+        if (!DEV_MODE) { this.handleRoute({ page: "home" }); return; }
+        const entry = lookupSlug("action", route.slug);
+        if (entry) {
+          this.openActionEditor(entry.name);
+          closeMenu();
+        } else {
+          this.handleRoute({ page: "home" });
+        }
+        break;
+      }
+      case "editor-from-play": {
+        if (!DEV_MODE) { this.handleRoute({ page: "home" }); return; }
+        const entry = lookupSlug("play", route.slug);
+        if (entry) {
+          this.openActionEditorWithPlay(entry.index);
+          closeMenu();
+        } else {
+          this.handleRoute({ page: "home" });
+        }
+        break;
+      }
+      case "home":
+      default:
+        openMenu();
+        break;
+    }
   }
 
   setupEditorButtons() {
@@ -57,7 +107,7 @@ export default class PlayControls {
     formationBtn.className = "play-btn";
     formationBtn.dataset.editorKey = "formation-editor";
     formationBtn.textContent = "✎ Formation Editor";
-    formationBtn.addEventListener("click", () => this.openFormationEditor());
+    formationBtn.addEventListener("click", () => navigate("editor/formation"));
     this.playlistEl.appendChild(formationBtn);
 
     const actionHeader = document.createElement("div");
@@ -73,7 +123,7 @@ export default class PlayControls {
       btn.dataset.editorKey = "action-editor-" + name;
       btn.style.cssText = "font-size:12px;padding:6px 8px;";
       btn.textContent = name.charAt(0).toUpperCase() + name.slice(1);
-      btn.addEventListener("click", () => this.openActionEditor(name));
+      btn.addEventListener("click", () => navigate("editor/action/" + formationSlug(name)));
       subContainer.appendChild(btn);
     });
     this.playlistEl.appendChild(subContainer);
@@ -91,7 +141,7 @@ export default class PlayControls {
       btn.dataset.editorKey = "play-action-" + index;
       btn.style.cssText = "font-size:12px;padding:6px 8px;";
       btn.textContent = play.name;
-      btn.addEventListener("click", () => this.openActionEditorWithPlay(index));
+      btn.addEventListener("click", () => navigate("editor/from-play/" + playSlug(index)));
       playSubContainer.appendChild(btn);
     });
     this.playlistEl.appendChild(playSubContainer);
@@ -154,7 +204,7 @@ export default class PlayControls {
       btn.className = "play-btn";
       btn.textContent = play.name;
       btn.addEventListener("click", () => {
-        this.loadPlay(index);
+        navigate("play/" + playSlug(index));
         closeMenu();
       });
       this.playlistEl.appendChild(btn);

@@ -156,7 +156,11 @@
       });
     });
 
-    openMenu();
+// Router handles initial menu open based on hash
+    // Only open menu on load if no hash is set
+    if (!location.hash) {
+      openMenu();
+    }
   </script>
   <script type="module" src="/src/main.js"></script>
 </body>
