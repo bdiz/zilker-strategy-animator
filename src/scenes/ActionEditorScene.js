@@ -421,7 +421,7 @@ export default class ActionEditorScene extends Phaser.Scene {
     const playerId = player.playerId;
     const pathLength = this.computePathLength(simplified);
     const duration = Math.ceil(pathLength / RUN_SPEED / TICK_MS * 1000);
-    const delay = this.computeDelay(playerId);
+    const delay = 5;
 
     const path = simplified.map((p) => ({
       x: Math.round(p.x * 10) / 10,
@@ -451,7 +451,7 @@ export default class ActionEditorScene extends Phaser.Scene {
     const inGoal = this.isInGoal(ball.x, ball.y);
 
     if (this.dragBallPrevCarrier) {
-      const delay = this.computeDelay(this.dragBallPrevCarrier);
+      const delay = 5;
       const ballStart = { x: ball.fieldX, y: ball.fieldY };
 
       if (inGoal) {
@@ -534,15 +534,6 @@ export default class ActionEditorScene extends Phaser.Scene {
     this.time.delayedCall(800, () => {
       tempGfx.destroy();
     });
-  }
-
-  computeDelay(playerId) {
-    const actions = this.playerActions[playerId] || [];
-    let total = 0;
-    for (const a of actions) {
-      total += a.duration || 0;
-    }
-    return total;
   }
 
   computePathLength(path) {
