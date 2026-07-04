@@ -6,7 +6,7 @@ export default class BootScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("ball", "/soccer-ball.png");
+    this.load.image("ball", `${import.meta.env.BASE_URL}soccer-ball.png`);
   }
 
   create() {
