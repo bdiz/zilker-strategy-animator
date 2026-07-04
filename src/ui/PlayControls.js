@@ -6,6 +6,7 @@ export default class PlayControls {
   constructor(scene) {
     this.scene = scene;
     this.currentIndex = 0;
+    this.activeEditorKey = null;
     this._draggingProgress = false;
     this.editorControls = null;
 
@@ -34,6 +35,13 @@ export default class PlayControls {
     scene.animationRunner.callbacks.onPlayEnd = () => {
       this.showPlayIcon();
     };
+
+    document.getElementById("menu-toggle").addEventListener("click", () => {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar.classList.contains("open")) {
+        this.refreshActiveButton();
+      }
+    });
   }
 
   setupEditorButtons() {
@@ -47,6 +55,7 @@ export default class PlayControls {
 
     const formationBtn = document.createElement("button");
     formationBtn.className = "play-btn";
+    formationBtn.dataset.editorKey = "formation-editor";
     formationBtn.textContent = "✎ Formation Editor";
     formationBtn.addEventListener("click", () => this.openFormationEditor());
     this.playlistEl.appendChild(formationBtn);
@@ -61,6 +70,7 @@ export default class PlayControls {
     Object.keys(FORMATIONS).forEach((name) => {
       const btn = document.createElement("button");
       btn.className = "play-btn";
+      btn.dataset.editorKey = "action-editor-" + name;
       btn.style.cssText = "font-size:12px;padding:6px 8px;";
       btn.textContent = name.charAt(0).toUpperCase() + name.slice(1);
       btn.addEventListener("click", () => this.openActionEditor(name));
@@ -78,6 +88,7 @@ export default class PlayControls {
     allPlays.forEach((play, index) => {
       const btn = document.createElement("button");
       btn.className = "play-btn";
+      btn.dataset.editorKey = "play-action-" + index;
       btn.style.cssText = "font-size:12px;padding:6px 8px;";
       btn.textContent = play.name;
       btn.addEventListener("click", () => this.openActionEditorWithPlay(index));
@@ -97,6 +108,7 @@ export default class PlayControls {
 
     game.scene.run("FormationEditorScene");
     this.editorControls.showFormationEditor();
+    this.highlightEditor("formation-editor");
     window.playSelected = true;
     closeMenu();
   }
@@ -112,6 +124,7 @@ export default class PlayControls {
 
     game.scene.run("ActionEditorScene");
     this.editorControls.showActionEditor(formationName);
+    this.highlightEditor("action-editor-" + formationName);
     window.playSelected = true;
     closeMenu();
   }
@@ -129,6 +142,7 @@ export default class PlayControls {
     window.__pendingActionEditorPlay = playData;
     game.scene.run("ActionEditorScene");
     this.editorControls.showActionEditor(playData.formation);
+    this.highlightEditor("play-action-" + playIndex);
     window.playSelected = true;
     closeMenu();
   }
@@ -220,10 +234,34 @@ export default class PlayControls {
   }
 
   highlightPlay(index) {
+    this.currentIndex = index;
+    this.activeEditorKey = null;
     const btns = this.playlistEl.querySelectorAll(".play-btn");
+    btns.forEach((b) => b.classList.remove("active"));
     btns.forEach((b, i) => {
-      b.classList.toggle("active", i === index);
+      if (i === index) b.classList.add("active");
     });
+  }
+
+  highlightEditor(key) {
+    this.currentIndex = null;
+    this.activeEditorKey = key;
+    const btns = this.playlistEl.querySelectorAll(".play-btn");
+    btns.forEach((b) => b.classList.remove("active"));
+    btns.forEach((b) => {
+      if (b.dataset.editorKey === key) b.classList.add("active");
+    });
+  }
+
+  refreshActiveButton() {
+    if (this.currentIndex != null) {
+      this.highlightPlay(this.currentIndex);
+    } else if (this.activeEditorKey) {
+      this.highlightEditor(this.activeEditorKey);
+    } else {
+      const btns = this.playlistEl.querySelectorAll(".play-btn");
+      btns.forEach((b) => b.classList.remove("active"));
+    }
   }
 
   loadPlay(index) {
