@@ -20,9 +20,25 @@ export default class PlayControls {
     this.stepLabel = document.getElementById("step-label");
     this.progressSlider = document.getElementById("progress-slider");
 
+    this.zilkerClicks = 0;
+    this._editorButtonsCreated = false;
+    this.zilkerTitle = document.querySelector("#sidebar h1");
+    if (this.zilkerTitle) {
+      this.zilkerTitle.style.cursor = "pointer";
+      this.zilkerTitle.addEventListener("click", () => {
+        this.zilkerClicks++;
+        if (this.zilkerClicks >= 5 && !this._editorButtonsCreated) {
+          this.setupEditorButtons();
+        }
+      });
+    }
+
     this.setupPlaylist();
-    this.setupEditorButtons();
     this.setupControls();
+
+    if (DEV_MODE) {
+      this.setupEditorButtons();
+    }
 
     scene.onPlayChange = (index, name) => {
       this.highlightPlay(index);
@@ -60,13 +76,11 @@ export default class PlayControls {
         break;
       }
       case "editor-formation": {
-        if (!DEV_MODE) { this.handleRoute({ page: "home" }); return; }
         this.openFormationEditor();
         closeMenu();
         break;
       }
       case "editor-action": {
-        if (!DEV_MODE) { this.handleRoute({ page: "home" }); return; }
         const entry = lookupSlug("action", route.slug);
         if (entry) {
           this.openActionEditor(entry.name);
@@ -77,7 +91,6 @@ export default class PlayControls {
         break;
       }
       case "editor-from-play": {
-        if (!DEV_MODE) { this.handleRoute({ page: "home" }); return; }
         const entry = lookupSlug("play", route.slug);
         if (entry) {
           this.openActionEditorWithPlay(entry.index);
@@ -95,7 +108,8 @@ export default class PlayControls {
   }
 
   setupEditorButtons() {
-    if (!DEV_MODE) return;
+    if (this._editorButtonsCreated) return;
+    this._editorButtonsCreated = true;
 
     const divider = document.createElement("hr");
     divider.style.border = "none";
