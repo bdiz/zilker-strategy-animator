@@ -1,4 +1,6 @@
-export const DEV_MODE = import.meta.env.DEV;
+// Toggle to true to enable Formation/Action Editors in production builds.
+// Set to `import.meta.env.DEV` when ready to revert to dev-only mode.
+export const DEV_MODE = true;
 
 export const TICK_MS = 143;
 
