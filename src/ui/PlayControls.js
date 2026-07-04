@@ -143,11 +143,12 @@ export default class PlayControls {
 
     const editFormContainer = document.createElement("div");
     editFormContainer.style.cssText = "display:flex;flex-direction:column;gap:0;margin-bottom:4px;";
+    const displayName = (name) => name === "goalKick" ? "Goal kick" : name === "kickoff" ? "Kickoff" : name.charAt(0).toUpperCase() + name.slice(1);
     Object.keys(FORMATIONS).forEach((name) => {
       const btn = document.createElement("button");
       btn.className = "play-btn";
       btn.dataset.editorKey = "formation-editor-" + name;
-      btn.textContent = "Edit " + name.charAt(0).toUpperCase() + name.slice(1);
+      btn.textContent = "Edit " + displayName(name) + " formation";
       btn.addEventListener("click", () => navigate("editor/formation/" + formationSlug(name)));
       editFormContainer.appendChild(btn);
     });
@@ -170,7 +171,7 @@ export default class PlayControls {
       const btn = document.createElement("button");
       btn.className = "play-btn";
       btn.dataset.editorKey = "action-editor-" + name;
-      btn.textContent = "New " + name.charAt(0).toUpperCase() + name.slice(1) + " play";
+      btn.textContent = "New " + displayName(name) + " play";
       btn.addEventListener("click", () => navigate("editor/action/" + formationSlug(name)));
       subContainer.appendChild(btn);
     });

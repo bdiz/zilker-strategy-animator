@@ -56,7 +56,7 @@ export default class ActionEditorScene extends Phaser.Scene {
     this.graphics = null;
     this.pathGraphics = null;
     this.livePathGraphics = null;
-    this.formationName = "diamond";
+    this.formationName = "offensive";
     this.previewMode = false;
     this.animationRunner = null;
 
@@ -91,7 +91,7 @@ export default class ActionEditorScene extends Phaser.Scene {
       window.__pendingActionEditorPlay = null;
       this.loadPlayData(pending);
     } else {
-      this.setFormation("diamond");
+      this.setFormation("offensive");
     }
 
     this.events.emit("editor-ready");

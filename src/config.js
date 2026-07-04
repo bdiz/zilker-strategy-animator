@@ -26,11 +26,11 @@ export const PLAYER_NAMES = {
 
 export const PLAYER_IDS = ["GK", "CM", "LB", "RB", "LM", "RM", "FWD"];
 
-import diamond from './formations/diamond.json';
-import goalKick from './formations/goalKick.json';
+import offensive from './formations/offensive.json';
+import goalKick from './formations/goal-kick.json';
 import kickoff from './formations/kickoff.json';
 
-export const FORMATIONS = { diamond, goalKick, kickoff };
+export const FORMATIONS = { kickoff, offensive, goalKick };
 
 export const PLAYER_RADIUS = 16;
 export const BALL_RADIUS = 15;
