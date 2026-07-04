@@ -64,6 +64,7 @@ export default class AnimationRunner {
         actions,
         currentActionIdx: 0,
         completed: actions.length === 0,
+        _releasedAction: null,
       });
     }
   }
@@ -99,6 +100,9 @@ export default class AnimationRunner {
     this.prevTickStates = [];
     this.nextTickStates = [];
     this.clearGraphics();
+    for (const timeline of this.playerTimelines) {
+      delete timeline._releasedAction;
+    }
   }
 
   clearGraphics() {
@@ -156,8 +160,10 @@ export default class AnimationRunner {
     const arr = kind === "prev" ? this.prevTickStates : this.nextTickStates;
     arr.length = 0;
     for (const timeline of this.playerTimelines) {
-      if (timeline.completed) continue;
-      const action = timeline.actions[timeline.currentActionIdx];
+      if (timeline.completed && !timeline._releasedAction) continue;
+      const action = timeline._releasedAction
+        ? timeline._releasedAction.action
+        : timeline.actions[timeline.currentActionIdx];
       if (!action) continue;
       arr.push({
         player: timeline.player,
@@ -212,6 +218,20 @@ export default class AnimationRunner {
       this.processTimelineTick(timeline, tickIndex);
     }
     for (const timeline of this.playerTimelines) {
+      if (timeline._releasedAction) {
+        const { action, actionStart } = timeline._releasedAction;
+        const actionEnd = actionStart + (action.duration || 0);
+        if (tickIndex < actionEnd) {
+          const t = (tickIndex - actionStart) / action.duration;
+          this.executeActionTick(action, timeline.player, t);
+        } else {
+          this.finalizeAction(action, timeline.player);
+          this._passShootPlayers.add(timeline.player);
+          delete timeline._releasedAction;
+        }
+      }
+    }
+    for (const timeline of this.playerTimelines) {
       if (this._passShootPlayers.has(timeline.player)) continue;
       this.checkCollision(timeline.player);
     }
@@ -241,6 +261,15 @@ export default class AnimationRunner {
         const executed = this.executeActionTick(action, player, t);
         if (executed && (action.action === "pass" || action.action === "shoot")) {
           this._passShootPlayers.add(player);
+          if (action._startPos) {
+            timeline._releasedAction = { action, actionStart };
+            idx++;
+            timeline.currentActionIdx = idx;
+            if (idx < actions.length) {
+              actions[idx]._effectiveStart = Math.max(actions[idx].delay || 0, tickIndex);
+            }
+            continue;
+          }
         }
         return;
       }
@@ -267,7 +296,7 @@ export default class AnimationRunner {
       }
     }
 
-    if (idx >= actions.length) {
+    if (idx >= actions.length && !timeline._releasedAction) {
       timeline.completed = true;
     }
   }
