@@ -34,9 +34,11 @@ export default class EditorControls {
     const fmtPanel = document.createElement("div");
     fmtPanel.id = "editor-formation-controls";
     fmtPanel.style.cssText = "display:flex;align-items:center;gap:10px;flex-wrap:wrap;";
-    fmtPanel.innerHTML = `<span style="font-size:12px;color:#f0c040;">Formation Editor</span>
-<button id="btn-save-formation" class="ec-btn">Save Formation</button>
-<button id="btn-clear-formation" class="ec-btn">Clear</button>`;
+    fmtPanel.innerHTML = `<span style="font-size:12px;color:#f0c040;">Formation editor</span>
+<div style="margin-left:auto;display:flex;gap:10px;">
+<button id="btn-save-formation" class="ec-btn">Copy to Clipboard</button>
+<button id="btn-clear-formation" class="ec-btn">Clear</button>
+</div>`;
     bar.appendChild(fmtPanel);
 
     const actPanel = document.createElement("div");
@@ -209,8 +211,8 @@ export default class EditorControls {
     const label = this.formationPanel.querySelector("span");
     if (label) {
       label.textContent = formationName
-        ? "Formation Editor — " + formationName.charAt(0).toUpperCase() + formationName.slice(1)
-        : "Formation Editor";
+        ? "Formation editor — " + formationName.charAt(0).toUpperCase() + formationName.slice(1)
+        : "Formation editor";
     }
   }
 

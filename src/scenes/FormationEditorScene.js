@@ -206,8 +206,6 @@ export default class FormationEditorScene extends Phaser.Scene {
       formation[p.playerId] = { x: Math.round(f.x), y: Math.round(f.y) };
     });
     const json = JSON.stringify(formation, null, 2);
-    console.log("=== Formation ===");
-    console.log(json);
     navigator.clipboard.writeText(json).catch(() => {});
   }
 

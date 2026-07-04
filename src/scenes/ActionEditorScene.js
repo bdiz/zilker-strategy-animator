@@ -713,8 +713,6 @@ export default class ActionEditorScene extends Phaser.Scene {
       commands,
     };
     const json = JSON.stringify(play, null, 2);
-    console.log("=== Full Play ===");
-    console.log(json);
     navigator.clipboard.writeText(json).catch(() => {});
   }
 
