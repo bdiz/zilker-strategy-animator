@@ -195,6 +195,10 @@ export default class PlayControls {
     this.scene.animationRunner.stop();
     this.scene.scene.pause();
 
+    if (game.scene.isActive("ActionEditorScene")) {
+      game.scene.stop("ActionEditorScene");
+    }
+
     if (!this.editorControls) {
       this.editorControls = new EditorControls(game);
     }
@@ -210,6 +214,10 @@ export default class PlayControls {
     const game = this.scene.game;
     this.scene.animationRunner.stop();
     this.scene.scene.pause();
+
+    if (game.scene.isActive("ActionEditorScene")) {
+      game.scene.stop("ActionEditorScene");
+    }
 
     if (!this.editorControls) {
       this.editorControls = new EditorControls(game);
@@ -228,6 +236,10 @@ export default class PlayControls {
     this.scene.animationRunner.stop();
     this.scene.scene.pause();
 
+    if (game.scene.isActive("FormationEditorScene")) {
+      game.scene.stop("FormationEditorScene");
+    }
+
     if (!this.editorControls) {
       this.editorControls = new EditorControls(game);
     }
@@ -244,6 +256,10 @@ export default class PlayControls {
     const playData = allPlays[playIndex];
     this.scene.animationRunner.stop();
     this.scene.scene.pause();
+
+    if (game.scene.isActive("FormationEditorScene")) {
+      game.scene.stop("FormationEditorScene");
+    }
 
     if (!this.editorControls) {
       this.editorControls = new EditorControls(game);
