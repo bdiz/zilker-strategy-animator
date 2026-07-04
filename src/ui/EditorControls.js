@@ -199,12 +199,19 @@ export default class EditorControls {
     this._currentEdit = null;
   }
 
-  showFormationEditor() {
+  showFormationEditor(formationName) {
     this.playControls.style.display = "none";
     this.editorControls.style.display = "block";
     this.formationPanel.style.display = "flex";
     this.actionPanel.style.display = "none";
     this.closeEditModal();
+
+    const label = this.formationPanel.querySelector("span");
+    if (label) {
+      label.textContent = formationName
+        ? "Formation Editor — " + formationName.charAt(0).toUpperCase() + formationName.slice(1)
+        : "Formation Editor";
+    }
   }
 
   showActionEditor(formationName) {

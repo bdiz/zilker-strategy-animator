@@ -75,6 +75,16 @@ export default class PlayControls {
         }
         break;
       }
+      case "editor-formation-load": {
+        const entry = lookupSlug("action", route.slug);
+        if (entry) {
+          this.openFormationEditorWithFormation(entry.name);
+          closeMenu();
+        } else {
+          this.handleRoute({ page: "home" });
+        }
+        break;
+      }
       case "editor-formation": {
         this.openFormationEditor();
         closeMenu();
@@ -117,6 +127,11 @@ export default class PlayControls {
     divider.style.margin = "12px 0";
     this.playlistEl.appendChild(divider);
 
+    const formHeader = document.createElement("div");
+    formHeader.style.cssText = "font-size:12px;color:#8899aa;padding:4px 4px 4px;";
+    formHeader.textContent = "Formation editor";
+    this.playlistEl.appendChild(formHeader);
+
     const formationBtn = document.createElement("button");
     formationBtn.className = "play-btn";
     formationBtn.dataset.editorKey = "formation-editor";
@@ -124,37 +139,50 @@ export default class PlayControls {
     formationBtn.addEventListener("click", () => navigate("editor/formation"));
     this.playlistEl.appendChild(formationBtn);
 
+    formationBtn.style.marginBottom = "12px";
+
+    const editFormContainer = document.createElement("div");
+    editFormContainer.style.cssText = "display:flex;flex-direction:column;gap:0;margin-bottom:4px;";
+    Object.keys(FORMATIONS).forEach((name) => {
+      const btn = document.createElement("button");
+      btn.className = "play-btn";
+      btn.dataset.editorKey = "formation-editor-" + name;
+      btn.textContent = "Edit " + name.charAt(0).toUpperCase() + name.slice(1);
+      btn.addEventListener("click", () => navigate("editor/formation/" + formationSlug(name)));
+      editFormContainer.appendChild(btn);
+    });
+    this.playlistEl.appendChild(editFormContainer);
+
+    const divider2 = document.createElement("hr");
+    divider2.style.border = "none";
+    divider2.style.borderTop = "1px solid #2a4a7a";
+    divider2.style.margin = "12px 0";
+    this.playlistEl.appendChild(divider2);
+
     const actionHeader = document.createElement("div");
-    actionHeader.style.cssText = "font-size:12px;color:#8899aa;padding:8px 4px 2px;";
-    actionHeader.textContent = "Add plays";
+    actionHeader.style.cssText = "font-size:12px;color:#8899aa;padding:4px 4px 4px;";
+    actionHeader.textContent = "Play editor";
     this.playlistEl.appendChild(actionHeader);
 
     const subContainer = document.createElement("div");
-    subContainer.style.cssText = "display:flex;flex-direction:column;gap:3px;padding-left:8px;margin-bottom:4px;";
+    subContainer.style.cssText = "display:flex;flex-direction:column;gap:0;margin-bottom:4px;";
     Object.keys(FORMATIONS).forEach((name) => {
       const btn = document.createElement("button");
       btn.className = "play-btn";
       btn.dataset.editorKey = "action-editor-" + name;
-      btn.style.cssText = "font-size:12px;padding:6px 8px;";
       btn.textContent = "New " + name.charAt(0).toUpperCase() + name.slice(1) + " play";
       btn.addEventListener("click", () => navigate("editor/action/" + formationSlug(name)));
       subContainer.appendChild(btn);
     });
     this.playlistEl.appendChild(subContainer);
 
-    const playActionHeader = document.createElement("div");
-    playActionHeader.style.cssText = "font-size:12px;color:#8899aa;padding:6px 4px 2px;";
-    playActionHeader.textContent = "Edit plays";
-    this.playlistEl.appendChild(playActionHeader);
-
     const playSubContainer = document.createElement("div");
-    playSubContainer.style.cssText = "display:flex;flex-direction:column;gap:3px;padding-left:8px;margin-bottom:4px;";
+    playSubContainer.style.cssText = "display:flex;flex-direction:column;gap:0;margin-bottom:4px;margin-top:6px;";
     allPlays.forEach((play, index) => {
       const btn = document.createElement("button");
       btn.className = "play-btn";
       btn.dataset.editorKey = "play-action-" + index;
-      btn.style.cssText = "font-size:12px;padding:6px 8px;";
-      btn.textContent = play.name;
+      btn.textContent = "Edit " + play.name + " play";
       btn.addEventListener("click", () => navigate("editor/from-play/" + playSlug(index)));
       playSubContainer.appendChild(btn);
     });
@@ -171,8 +199,25 @@ export default class PlayControls {
     }
 
     game.scene.run("FormationEditorScene");
-    this.editorControls.showFormationEditor();
+    this.editorControls.showFormationEditor(null);
     this.highlightEditor("formation-editor");
+    window.playSelected = true;
+    closeMenu();
+  }
+
+  openFormationEditorWithFormation(formationName) {
+    const game = this.scene.game;
+    this.scene.animationRunner.stop();
+    this.scene.scene.pause();
+
+    if (!this.editorControls) {
+      this.editorControls = new EditorControls(game);
+    }
+
+    window.__pendingFormationName = formationName;
+    game.scene.run("FormationEditorScene");
+    this.editorControls.showFormationEditor(formationName);
+    this.highlightEditor("formation-editor-" + formationName);
     window.playSelected = true;
     closeMenu();
   }

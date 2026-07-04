@@ -35,8 +35,11 @@ function resolveRoute(hash) {
   }
 
   if (parts[0] === "editor") {
-    if (parts[1] === "formation") {
+    if (parts[1] === "formation" && !parts[2]) {
       return { page: "editor-formation" };
+    }
+    if (parts[1] === "formation" && parts[2]) {
+      return { page: "editor-formation-load", slug: parts[2] };
     }
     if (parts[1] === "action" && parts[2]) {
       return { page: "editor-action", slug: parts[2] };

@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import Player from "../objects/Player.js";
 import {
-  FIELD, PLAYER_IDS,
+  FIELD, PLAYER_IDS, FORMATIONS,
   getLayout, setLayout, computeLayout, toField, toScreen,
 } from "../config.js";
 
@@ -16,6 +16,7 @@ export default class FormationEditorScene extends Phaser.Scene {
   create() {
     this.players = {};
     this.graphics = null;
+    this.currentFormationName = null;
 
     this.handleResize = this.handleResize.bind(this);
 
@@ -29,7 +30,23 @@ export default class FormationEditorScene extends Phaser.Scene {
     this.createPlayers();
     this.setupDrag();
 
+    if (window.__pendingFormationName) {
+      this.setFormation(window.__pendingFormationName);
+      window.__pendingFormationName = null;
+    }
+
     this.events.emit("editor-ready");
+  }
+
+  setFormation(name) {
+    const formation = FORMATIONS[name];
+    if (!formation) return;
+    this.currentFormationName = name;
+    Object.entries(formation).forEach(([id, pos]) => {
+      const p = this.players[id];
+      if (p) p.setFieldPosition(pos.x, pos.y);
+    });
+    this.logFormation();
   }
 
   handleResize() {
