@@ -27,6 +27,13 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - name: Delete old github-pages artifact
+        run: |
+          gh api /repos/${{ github.repository }}/actions/artifacts \
+            --jq '.artifacts[] | select(.name=="github-pages" and .expired==false) | .id' \
+            | xargs -I{} gh api -X DELETE /repos/${{ github.repository }}/actions/artifacts/{}
+        env:
+          GH_TOKEN: ${{ github.token }}
       - uses: actions/configure-pages@v4
       - uses: actions/upload-pages-artifact@v3
         with:
