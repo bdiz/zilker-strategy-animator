@@ -68,6 +68,11 @@ export default class ActionEditorScene extends Phaser.Scene {
     this.recordingPlayerId = null;
     this.dragBallPrevCarrier = null;
 
+    this.actionHitZones = [];
+    this._pointerDownPos = null;
+    this.selectedActionInfo = null;
+    this._hoveredZone = null;
+
     this.handleResize = this.handleResize.bind(this);
 
     this.scale.on("resize", this.handleResize);
@@ -249,9 +254,45 @@ export default class ActionEditorScene extends Phaser.Scene {
 
     this.redrawAllPaths();
     this.notifyActionChange();
+    this.buildActionHitZones();
   }
 
   setupDrag() {
+    this.input.on("pointerdown", (pointer) => {
+      this._pointerDownPos = { x: pointer.x, y: pointer.y };
+      this._pointerMoved = false;
+      this._hoveredZone = null;
+      this.input.setDefaultCursor("default");
+    });
+
+    this.input.on("pointermove", (pointer) => {
+      this._pointerMoved = true;
+      if (this.previewMode) return;
+      const hit = this.hitTestAction(pointer.x, pointer.y);
+      if (hit !== this._hoveredZone) {
+        this._hoveredZone = hit;
+        this.input.setDefaultCursor(hit ? "pointer" : "default");
+      }
+    });
+
+    this.input.on("pointerup", (pointer) => {
+      if (this.previewMode) return;
+      if (this._pointerMoved) return;
+      if (!this._pointerDownPos) return;
+      const dx = pointer.x - this._pointerDownPos.x;
+      const dy = pointer.y - this._pointerDownPos.y;
+      if (Math.sqrt(dx * dx + dy * dy) > 6) return;
+
+      const hit = this.hitTestAction(pointer.x, pointer.y);
+      if (hit) {
+        this.selectedActionInfo = hit;
+        this.events.emit("action-clicked", hit);
+      } else {
+        this.selectedActionInfo = null;
+        this.events.emit("action-deselected");
+      }
+    });
+
     this.input.on("dragstart", (_pointer, gameObject) => {
       if (gameObject.playerId) {
         if (this.ball && this.ball.carrier === gameObject) {
@@ -396,6 +437,7 @@ export default class ActionEditorScene extends Phaser.Scene {
 
     this.redrawAllPaths();
     this.notifyActionChange();
+    this.buildActionHitZones();
 
     this.recordingPath = null;
     this.recordingPlayerId = null;
@@ -468,6 +510,7 @@ export default class ActionEditorScene extends Phaser.Scene {
     this.dragBallPrevCarrier = null;
     this.redrawAllPaths();
     this.notifyActionChange();
+    this.buildActionHitZones();
   }
 
   drawBallDropLine(playerId, targetField) {
@@ -525,6 +568,59 @@ export default class ActionEditorScene extends Phaser.Scene {
       screenX <= gx + gw &&
       (screenY <= topGoalBottom || screenY >= bottomGoalTop)
     );
+  }
+
+  buildActionHitZones() {
+    this.actionHitZones = [];
+    const layout = getLayout();
+    if (!layout) return;
+
+    Object.entries(this.playerActions).forEach(([playerId, actions]) => {
+      actions.forEach((action, actionIdx) => {
+        if (action.action === "run" && action.path && action.path.length > 0) {
+          const segments = [];
+          for (let i = 0; i < action.path.length - 1; i++) {
+            const a = toScreen(layout, action.path[i]);
+            const b = toScreen(layout, action.path[i + 1]);
+            segments.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y });
+          }
+          this.actionHitZones.push({ playerId, actionIndex: actionIdx, segments, actionType: "run" });
+        }
+        if ((action.action === "pass" || action.action === "shoot") && action.target) {
+          const origin = this.getPassShootOrigin(playerId, actionIdx);
+          const from = toScreen(layout, origin);
+          const to = toScreen(layout, action.target);
+          this.actionHitZones.push({
+            playerId, actionIndex: actionIdx,
+            segments: [{ x1: from.x, y1: from.y, x2: to.x, y2: to.y }],
+            actionType: action.action,
+          });
+        }
+      });
+    });
+  }
+
+  hitTestAction(px, py) {
+    const HIT_THRESHOLD = 18;
+    for (const zone of this.actionHitZones) {
+      for (const seg of zone.segments) {
+        const d = this.pointToSegmentDist(px, py, seg.x1, seg.y1, seg.x2, seg.y2);
+        if (d < HIT_THRESHOLD) return zone;
+      }
+    }
+    return null;
+  }
+
+  pointToSegmentDist(px, py, x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq === 0) return Math.sqrt((px - x1) ** 2 + (py - y1) ** 2);
+    let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+    t = Math.max(0, Math.min(1, t));
+    const cx = x1 + t * dx;
+    const cy = y1 + t * dy;
+    return Math.sqrt((px - cx) ** 2 + (py - cy) ** 2);
   }
 
   redrawAllPaths() {
@@ -585,6 +681,8 @@ export default class ActionEditorScene extends Phaser.Scene {
         }
       });
     });
+
+    this.buildActionHitZones();
   }
 
   notifyActionChange() {
@@ -636,6 +734,8 @@ export default class ActionEditorScene extends Phaser.Scene {
     };
     this.dragBallPrevCarrier = null;
     this.ballCarrier = null;
+    this.selectedActionInfo = null;
+    this.events.emit("action-deselected");
     this.setFormation(this.formationName);
     const sideY = FIELD.HEIGHT - 40 - SIDELINE_OFFSETS.GK * 30 - 20;
     this.ball.setFieldPosition(SIDELINE_X - 20, sideY);
@@ -644,6 +744,29 @@ export default class ActionEditorScene extends Phaser.Scene {
       this.pathGraphics = null;
     }
     this.clearLivePath();
+    this.notifyActionChange();
+    this.buildActionHitZones();
+  }
+
+  updateActionField(playerId, actionIndex, field, value) {
+    const action = this.playerActions[playerId]?.[actionIndex];
+    if (!action) return;
+    if (field === "duration") {
+      action.duration = Math.max(1, value);
+    } else if (field === "delay") {
+      action.delay = Math.max(0, value);
+    }
+    this.redrawAllPaths();
+    this.notifyActionChange();
+  }
+
+  deleteAction(playerId, actionIndex) {
+    const actions = this.playerActions[playerId];
+    if (!actions || actionIndex < 0 || actionIndex >= actions.length) return;
+    actions.splice(actionIndex, 1);
+    this.selectedActionInfo = null;
+    this.events.emit("action-deselected");
+    this.redrawAllPaths();
     this.notifyActionChange();
   }
 
