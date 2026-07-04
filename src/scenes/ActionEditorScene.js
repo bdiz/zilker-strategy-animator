@@ -8,8 +8,6 @@ import {
   getLayout, setLayout, computeLayout, toField, toScreen,
 } from "../config.js";
 
-const SIDELINE_X = -50;
-const SIDELINE_OFFSETS = { GK: 0, CM: 1, LB: 2, RB: 3, LM: 4, RM: 5, FWD: 6 };
 const PATH_SAMPLE_DIST = 15;
 
 function rdp(points, epsilon) {
@@ -198,8 +196,7 @@ export default class ActionEditorScene extends Phaser.Scene {
   createBall() {
     this.ball = new Ball(this, 0, 0);
     this.ball.enableDrag();
-    const sideY = FIELD.HEIGHT - 40 - SIDELINE_OFFSETS.GK * 30 - 20;
-    this.ball.setFieldPosition(SIDELINE_X - 20, sideY);
+    this.ball.setFieldPosition(15, FIELD.HEIGHT - 15);
   }
 
   setFormation(name) {
@@ -230,13 +227,12 @@ export default class ActionEditorScene extends Phaser.Scene {
       if (typeof playData.placement === "string") {
         const f = FORMATIONS[playData.formation];
         const ppos = f && f[playData.placement] ? f[playData.placement] : null;
-        ballPos = ppos ? { x: ppos.x, y: ppos.y } : { x: SIDELINE_X, y: 170 };
+        ballPos = ppos ? { x: ppos.x, y: ppos.y } : { x: 15, y: FIELD.HEIGHT - 15 };
       } else {
         ballPos = { x: playData.placement.x, y: playData.placement.y };
       }
     } else {
-      const sideY = FIELD.HEIGHT - 40 - SIDELINE_OFFSETS.GK * 30 - 20;
-      ballPos = { x: SIDELINE_X, y: sideY };
+      ballPos = { x: 15, y: FIELD.HEIGHT - 15 };
     }
 
     if (playData.placement) {
@@ -733,8 +729,7 @@ export default class ActionEditorScene extends Phaser.Scene {
     this.selectedActionInfo = null;
     this.events.emit("action-deselected");
     this.setFormation(this.formationName);
-    const sideY = FIELD.HEIGHT - 40 - SIDELINE_OFFSETS.GK * 30 - 20;
-    this.ball.setFieldPosition(SIDELINE_X - 20, sideY);
+    this.ball.setFieldPosition(15, FIELD.HEIGHT - 15);
     if (this.pathGraphics) {
       this.pathGraphics.destroy();
       this.pathGraphics = null;

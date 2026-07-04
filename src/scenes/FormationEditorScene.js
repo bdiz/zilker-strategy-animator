@@ -5,8 +5,7 @@ import {
   getLayout, setLayout, computeLayout, toField, toScreen,
 } from "../config.js";
 
-const SIDELINE_X = -50;
-const SIDELINE_OFFSETS = { GK: 0, CM: 1, LB: 2, RB: 3, LM: 4, RM: 5, FWD: 6 };
+const BOTTOM_LEFT_X = 28;
 
 export default class FormationEditorScene extends Phaser.Scene {
   constructor() {
@@ -140,8 +139,8 @@ export default class FormationEditorScene extends Phaser.Scene {
     PLAYER_IDS.forEach((id) => {
       const p = new Player(this, id, 0, 0);
       p.enableDrag();
-      const sideY = FIELD.HEIGHT - 40 - SIDELINE_OFFSETS[id] * 30;
-      p.setFieldPosition(SIDELINE_X, sideY);
+      const idx = PLAYER_IDS.indexOf(id);
+      p.setFieldPosition(BOTTOM_LEFT_X, FIELD.HEIGHT - 15 - idx * 42);
       this.players[id] = p;
     });
   }
@@ -172,8 +171,8 @@ export default class FormationEditorScene extends Phaser.Scene {
 
     const inBounds = this.isOnField(player.x, player.y);
     if (!inBounds) {
-      const sideY = FIELD.HEIGHT - 40 - SIDELINE_OFFSETS[player.playerId] * 30;
-      player.setFieldPosition(SIDELINE_X, sideY);
+      const idx = PLAYER_IDS.indexOf(player.playerId);
+      player.setFieldPosition(BOTTOM_LEFT_X, FIELD.HEIGHT - 15 - idx * 42);
     } else {
       const f = toField(layout, player.x, player.y);
       player.fieldX = f.x;
@@ -212,8 +211,8 @@ export default class FormationEditorScene extends Phaser.Scene {
   clearAll() {
     PLAYER_IDS.forEach((id) => {
       const p = this.players[id];
-      const sideY = FIELD.HEIGHT - 40 - SIDELINE_OFFSETS[id] * 30;
-      p.setFieldPosition(SIDELINE_X, sideY);
+      const idx = PLAYER_IDS.indexOf(id);
+      p.setFieldPosition(BOTTOM_LEFT_X, FIELD.HEIGHT - 15 - idx * 42);
     });
     this.logFormation();
   }
