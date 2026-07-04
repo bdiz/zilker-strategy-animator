@@ -1,6 +1,6 @@
 {
   "name": "Custom Play",
-  "formation": "diamond",
+  "formation": "offensive",
   "placement": "LB",
   "commands": [
     {
