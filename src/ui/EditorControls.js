@@ -13,12 +13,6 @@ export default class EditorControls {
     this.setupActionControls();
 
     const scene = game.scene.getScene("ActionEditorScene");
-    if (scene) {
-      scene.events.on("actions-changed", (summary) => {
-        const el = document.getElementById("action-summary");
-        if (el) el.textContent = summary;
-      });
-    }
   }
 
   buildEditorBar() {
@@ -27,7 +21,7 @@ export default class EditorControls {
 
     const bar = document.createElement("div");
     bar.id = "editor-controls";
-    bar.style.cssText = "display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#0f1a30;padding:12px 16px;border-top:2px solid #f0c040;font-family:'Segoe UI',Arial,sans-serif;color:#d0d8e8;";
+    bar.style.cssText = "display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#0f1a30;padding:14px 16px 22px;border-top:2px solid #f0c040;font-family:'Segoe UI',Arial,sans-serif;color:#d0d8e8;";
 
     const fmtPanel = document.createElement("div");
     fmtPanel.id = "editor-formation-controls";
@@ -44,9 +38,10 @@ export default class EditorControls {
   <svg viewBox="0 0 24 24" style="width:100%;height:100%;fill:currentColor;"><polygon points="6,4 20,12 6,20"/></svg>
 </button>
 <span style="font-size:12px;color:#f0c040;">Action Editor</span>
-<span id="action-summary" style="font-size:11px;color:#88aacc;flex:1;">No actions recorded</span>
+<div style="margin-left:auto;display:flex;gap:10px;">
 <button id="btn-copy-play" class="ec-btn">Copy to Clipboard</button>
-<button id="btn-clear-action" class="ec-btn">Clear</button>`;
+<button id="btn-clear-action" class="ec-btn">Clear</button>
+</div>`;
     bar.appendChild(actPanel);
 
     const style = document.createElement("style");
@@ -117,11 +112,6 @@ export default class EditorControls {
     const scene = this.game.scene.getScene("ActionEditorScene");
     if (scene && scene.setFormation && FORMATIONS[formationName]) {
       scene.setFormation(formationName);
-    }
-
-    const summaryEl = document.getElementById("action-summary");
-    if (summaryEl && scene) {
-      summaryEl.textContent = scene.getActionSummary ? scene.getActionSummary() : "No actions recorded";
     }
   }
 
