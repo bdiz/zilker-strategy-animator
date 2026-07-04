@@ -53,6 +53,7 @@ export default class ActionEditorScene extends Phaser.Scene {
     this.players = {};
     this.ball = null;
     this.ballCarrier = null;
+    this.placementCarrier = null;
     this.graphics = null;
     this.pathGraphics = null;
     this.livePathGraphics = null;
@@ -241,11 +242,13 @@ export default class ActionEditorScene extends Phaser.Scene {
     if (playData.placement) {
       this.ball.detach();
       this.ballCarrier = null;
+      this.placementCarrier = null;
       if (typeof playData.placement === "string") {
         const p = this.players[playData.placement];
         if (p) {
           this.ball.placeBehind(p);
           this.ballCarrier = p;
+          this.placementCarrier = p.playerId;
         }
       } else if (typeof playData.placement === "object" && playData.placement.x != null) {
         this.ball.setFieldPosition(playData.placement.x, playData.placement.y);
@@ -510,6 +513,7 @@ export default class ActionEditorScene extends Phaser.Scene {
         if (Math.sqrt(dx * dx + dy * dy) < threshold) {
           ball.placeBehind(p);
           this.ballCarrier = p;
+          this.placementCarrier = p.playerId;
           attached = true;
           break;
         }
@@ -705,17 +709,6 @@ export default class ActionEditorScene extends Phaser.Scene {
   }
 
   copyToClipboard() {
-    let firstCarrierId = null;
-    for (const [playerId, actions] of Object.entries(this.playerActions)) {
-      for (const a of actions) {
-        if (a.action === "pass" || a.action === "shoot") {
-          firstCarrierId = playerId;
-          break;
-        }
-      }
-      if (firstCarrierId) break;
-    }
-
     const commands = Object.entries(this.playerActions)
       .filter(([_, actions]) => actions.length > 0)
       .map(([player, actions]) => ({ player, actions }));
@@ -723,7 +716,7 @@ export default class ActionEditorScene extends Phaser.Scene {
     const play = {
       name: "Custom Play",
       formation: this.formationName,
-      placement: firstCarrierId || null,
+      placement: this.placementCarrier || null,
       commands,
     };
     const json = JSON.stringify(play, null, 2);
@@ -736,6 +729,7 @@ export default class ActionEditorScene extends Phaser.Scene {
     };
     this.dragBallPrevCarrier = null;
     this.ballCarrier = null;
+    this.placementCarrier = null;
     this.selectedActionInfo = null;
     this.events.emit("action-deselected");
     this.setFormation(this.formationName);
@@ -835,39 +829,10 @@ export default class ActionEditorScene extends Phaser.Scene {
 
     this.redrawAllPaths();
 
-    let firstCarrierId = null;
-    for (const [playerId, actions] of Object.entries(this.playerActions)) {
-      for (const a of actions) {
-        if (a.action === "pass" || a.action === "shoot") {
-          firstCarrierId = playerId;
-          break;
-        }
-      }
-      if (firstCarrierId) break;
-    }
-    if (firstCarrierId) {
-      const p = this.players[firstCarrierId];
-      if (p) {
-        this.ball.placeBehind(p);
-        this.ballCarrier = p;
-      }
-    }
-
     this.events.emit("preview-ended");
   }
 
   buildPreviewPlay() {
-    let firstCarrierId = null;
-    for (const [playerId, actions] of Object.entries(this.playerActions)) {
-      for (const a of actions) {
-        if (a.action === "pass" || a.action === "shoot") {
-          firstCarrierId = playerId;
-          break;
-        }
-      }
-      if (firstCarrierId) break;
-    }
-
     const commands = Object.entries(this.playerActions)
       .filter(([_, actions]) => actions.length > 0)
       .map(([player, actions]) => ({
@@ -878,7 +843,7 @@ export default class ActionEditorScene extends Phaser.Scene {
     return {
       name: "Preview",
       formation: this.formationName,
-      placement: firstCarrierId || null,
+      placement: this.placementCarrier || null,
       commands,
     };
   }
