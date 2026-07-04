@@ -1,6 +1,5 @@
 {
   "name": "Goal Kick Build-Up",
-  "description": "CM takes goal kick short to LB → carries up → plays to LM → switches to RM",
   "formation": "goalKick",
   "placement": { "x": 170, "y": 470 },
   "commands": [

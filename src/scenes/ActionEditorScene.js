@@ -708,7 +708,6 @@ export default class ActionEditorScene extends Phaser.Scene {
 
     const play = {
       name: "Custom Play",
-      description: "Created with Action Editor",
       formation: this.formationName,
       placement: firstCarrierId || null,
       commands,
@@ -848,7 +847,6 @@ export default class ActionEditorScene extends Phaser.Scene {
 
     return {
       name: "Preview",
-      description: "Action Editor preview",
       formation: this.formationName,
       placement: firstCarrierId || null,
       commands,

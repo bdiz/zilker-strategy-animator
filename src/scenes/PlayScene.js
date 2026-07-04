@@ -62,7 +62,7 @@ export default class PlayScene extends Phaser.Scene {
     this.animationRunner.loadPlay(interpreter);
 
     if (this.onPlayChange) {
-      this.onPlayChange(index, playData.name, playData.description);
+      this.onPlayChange(index, playData.name);
     }
     if (this.onTickChange) {
       this.onTickChange(0, this.animationRunner.maxTicks, "");

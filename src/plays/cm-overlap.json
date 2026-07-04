@@ -1,6 +1,5 @@
 {
   "name": "CM Overlap & Score",
-  "description": "CM passes to LM → LM draws defender → CM overlaps outside → FWD lays off → CM scores",
   "formation": "diamond",
   "placement": "CM",
   "commands": [

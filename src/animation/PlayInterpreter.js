@@ -9,10 +9,6 @@ export default class PlayInterpreter {
     return this.playData.name;
   }
 
-  getDescription() {
-    return this.playData.description || "";
-  }
-
   getFormation() {
     return this.playData.formation || null;
   }

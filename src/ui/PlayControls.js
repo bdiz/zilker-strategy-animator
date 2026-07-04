@@ -24,9 +24,9 @@ export default class PlayControls {
     this.setupEditorButtons();
     this.setupControls();
 
-    scene.onPlayChange = (index, name, desc) => {
+    scene.onPlayChange = (index, name) => {
       this.highlightPlay(index);
-      this.stepLabel.textContent = desc || name;
+      this.stepLabel.textContent = name;
     };
 
     scene.animationRunner.callbacks.onTickChange = (tick, maxTicks, label) => {
