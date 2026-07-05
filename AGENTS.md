@@ -97,6 +97,7 @@ Each play has `name`, `description`, `formation`, `placement`, and `commands` �
 | `pass` | `target{x,y}`, `duration`, `delay` | Straight-line ball animation to target coordinates. Ball pickup via collision. |
 | `run` | `path[]`, `duration`, `delay` | Player moves along path waypoints over given duration. |
 | `shoot` | `target{x,y}`, `duration`, `delay` | Ball shoots to target in straight line, no receiver. |
+| `label` | `text`, `duration`, `delay` | Shows text 60px above the player for the duration. **Forked**: subsequent actions in the same player run in parallel (their delay starts from T=0, same as label). No visual line drawn in editor. |
 
 `run` actions compute duration based on distance at `RUN_SPEED` (80 units/s). All durations in ticks (100ms each).
 
@@ -140,7 +141,8 @@ Visible when `DEV_MODE = true` (auto-enabled during `npm run dev` via `import.me
 - **Recording runs**: Drag a player freely across the field. Path is sampled, simplified (Ramer-Douglas-Peucker), and recorded as a `run` action with waypoints. Live path line drawn during drag.
 - **Recording passes**: Drag the ball from its carrier to a target coordinate → `pass` action with `target{x,y}`
 - **Recording shots**: Drag the ball to the goal area → `shoot` action
-- Actions are recorded per-player, sequentially. Each run/pass/shoot appends to the player's action list with cumulative delay.
+- **Recording labels**: Double-click a player → modal appears with text input, duration, and delay fields → creates a `label` action
+- Actions are recorded per-player, sequentially. Each run/pass/shoot/label appends to the player's action list with cumulative delay.
 - Clicking a play under "From Plays" pre-loads its actions so you can edit/resequence them
 - "Log Full Play" outputs the complete play JSON (with `formation` + `placement`) to console and clipboard
 

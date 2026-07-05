@@ -70,8 +70,11 @@ export default class ActionEditorScene extends Phaser.Scene {
 
     this.actionHitZones = [];
     this._pointerDownPos = null;
+    this._pointerDownTime = 0;
     this.selectedActionInfo = null;
     this._hoveredZone = null;
+    this._lastClickTime = 0;
+    this._lastClickPlayerId = null;
 
     this.handleResize = this.handleResize.bind(this);
 
@@ -260,6 +263,7 @@ export default class ActionEditorScene extends Phaser.Scene {
   setupDrag() {
     this.input.on("pointerdown", (pointer) => {
       this._pointerDownPos = { x: pointer.x, y: pointer.y };
+      this._pointerDownTime = pointer.time;
       this._pointerMoved = false;
       this._hoveredZone = null;
       this.input.setDefaultCursor("default");
@@ -288,6 +292,23 @@ export default class ActionEditorScene extends Phaser.Scene {
       const dy = pointer.y - this._pointerDownPos.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
       const elapsed = pointer.getDuration();
+
+      if (dist <= 15 && elapsed < 300) {
+        const playerId = this.hitTestPlayer(pointer.x, pointer.y);
+        if (playerId) {
+          const now = Date.now();
+          if (this._lastClickPlayerId === playerId && now - this._lastClickTime < 400) {
+            this._lastClickTime = 0;
+            this._lastClickPlayerId = null;
+            this.events.emit("label-create", playerId);
+            return;
+          }
+          this._lastClickTime = now;
+          this._lastClickPlayerId = playerId;
+          return;
+        }
+      }
+
       if (dist > 15 && elapsed > 200) return;
 
       const hit = this.hitTestAction(pointer.x, pointer.y);
@@ -614,6 +635,20 @@ export default class ActionEditorScene extends Phaser.Scene {
     });
   }
 
+  hitTestPlayer(px, py) {
+    const layout = getLayout();
+    if (!layout) return null;
+    const threshold = PLAYER_RADIUS * 0.55 * layout.scale * 2;
+    for (const id of PLAYER_IDS) {
+      const p = this.players[id];
+      if (!p) continue;
+      const dx = px - p.x;
+      const dy = py - p.y;
+      if (Math.sqrt(dx * dx + dy * dy) < threshold) return id;
+    }
+    return null;
+  }
+
   hitTestAction(px, py) {
     const HIT_THRESHOLD = 22;
     for (const zone of this.actionHitZones) {
@@ -744,6 +779,18 @@ export default class ActionEditorScene extends Phaser.Scene {
       this.pathGraphics = null;
     }
     this.clearLivePath();
+    this.notifyActionChange();
+    this.buildActionHitZones();
+  }
+
+  addLabelAction(playerId, text, duration, delay) {
+    this.playerActions[playerId].push({
+      action: "label",
+      text,
+      duration,
+      delay,
+    });
+    this.redrawAllPaths();
     this.notifyActionChange();
     this.buildActionHitZones();
   }

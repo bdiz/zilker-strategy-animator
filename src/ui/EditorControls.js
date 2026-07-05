@@ -20,6 +20,7 @@ export default class EditorControls {
     if (scene) {
       scene.events.on("action-clicked", (hit) => this.openEditModal(hit));
       scene.events.on("action-deselected", () => this.closeEditModal());
+      scene.events.on("label-create", (playerId) => this.openLabelModal(playerId));
     }
   }
 
@@ -83,8 +84,14 @@ export default class EditorControls {
     </div>
   </div>
 
+  <div id="modal-label-row" style="display:none;margin-bottom:10px;">
+    <div style="font-size:11px;color:#8899aa;margin-bottom:4px;">Label Text</div>
+    <input id="modal-label-input" type="text" style="width:100%;padding:6px 8px;background:#1a3355;border:1px solid #2a4a7a;border-radius:4px;color:#d0d8e8;font-size:14px;box-sizing:border-box;outline:none;" placeholder="Enter label text..." />
+  </div>
+
   <div style="display:flex;gap:8px;justify-content:flex-end;border-top:1px solid #2a4a7a;padding-top:12px;">
     <button id="modal-delete-btn" class="ec-btn" style="background:#5c1a1a;border-color:#8a2a2a;color:#ff8888;margin-right:auto;">Delete Action</button>
+    <button id="modal-create-label-btn" class="ec-btn" style="display:none;background:#1a5544;border-color:#2a8a6a;">Create Label</button>
     <button id="modal-done-btn" class="ec-btn" style="background:#1a3355;">Done</button>
   </div>
 </div>`;
@@ -156,6 +163,24 @@ export default class EditorControls {
       }
     });
 
+    document.getElementById("modal-create-label-btn").addEventListener("click", () => {
+      const scene = this.game.scene.getScene("ActionEditorScene");
+      if (!scene || !this._currentEdit) return;
+      const playerId = this._currentEdit.playerId;
+      const text = document.getElementById("modal-label-input").value.trim();
+      if (!text) return;
+      const duration = parseInt(document.getElementById("modal-duration-value").textContent, 10) || 10;
+      const delay = parseInt(document.getElementById("modal-delay-value").textContent, 10) || 0;
+      scene.addLabelAction(playerId, text, duration, delay);
+      this.closeEditModal();
+    });
+
+    document.getElementById("modal-label-input").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        document.getElementById("modal-create-label-btn").click();
+      }
+    });
+
     this.actionModal.addEventListener("click", (e) => {
       if (e.target === this.actionModal) this.closeEditModal();
     });
@@ -165,14 +190,17 @@ export default class EditorControls {
         if (!this._currentEdit) return;
         const field = btn.dataset.field;
         const dir = parseInt(btn.dataset.dir, 10);
-        const scene = this.game.scene.getScene("ActionEditorScene");
-        if (!scene || !scene.updateActionField) return;
-        const action = this._currentEdit.action;
-        const current = action[field] || 0;
+        const span = document.getElementById(`modal-${field}-value`);
+        let current = parseInt(span.textContent, 10) || 0;
         const newVal = Math.max(field === "duration" ? 1 : 0, current + dir);
-        scene.updateActionField(this._currentEdit.playerId, this._currentEdit.actionIndex, field, newVal);
-        action[field] = newVal;
-        document.getElementById(`modal-${field}-value`).textContent = newVal;
+        span.textContent = newVal;
+        if (this._currentEdit.action) {
+          const scene = this.game.scene.getScene("ActionEditorScene");
+          if (scene && scene.updateActionField) {
+            scene.updateActionField(this._currentEdit.playerId, this._currentEdit.actionIndex, field, newVal);
+          }
+          this._currentEdit.action[field] = newVal;
+        }
       });
     });
   }
@@ -185,6 +213,11 @@ export default class EditorControls {
 
     this._currentEdit = { ...hit, action };
 
+    document.getElementById("modal-label-row").style.display = "none";
+    document.getElementById("modal-create-label-btn").style.display = "none";
+    document.getElementById("modal-delete-btn").style.display = "";
+    document.getElementById("modal-done-btn").style.display = "";
+
     const typeLabel = action.action.charAt(0).toUpperCase() + action.action.slice(1);
     document.getElementById("modal-title").textContent = `${hit.playerId} — ${typeLabel} #${hit.actionIndex + 1}`;
     document.getElementById("modal-subtitle").textContent = action.action === "run"
@@ -194,6 +227,24 @@ export default class EditorControls {
     document.getElementById("modal-delay-value").textContent = action.delay || 0;
 
     this.actionModal.style.display = "flex";
+  }
+
+  openLabelModal(playerId) {
+    this._currentEdit = { playerId };
+
+    document.getElementById("modal-label-row").style.display = "";
+    document.getElementById("modal-label-input").value = "";
+    document.getElementById("modal-create-label-btn").style.display = "";
+    document.getElementById("modal-delete-btn").style.display = "none";
+    document.getElementById("modal-done-btn").style.display = "none";
+
+    document.getElementById("modal-title").textContent = `${playerId} — Create Label`;
+    document.getElementById("modal-subtitle").textContent = "Double-click shortcut";
+    document.getElementById("modal-duration-value").textContent = "10";
+    document.getElementById("modal-delay-value").textContent = "0";
+
+    this.actionModal.style.display = "flex";
+    document.getElementById("modal-label-input").focus();
   }
 
   closeEditModal() {

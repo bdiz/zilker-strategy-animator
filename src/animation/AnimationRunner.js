@@ -100,8 +100,20 @@ export default class AnimationRunner {
     this.prevTickStates = [];
     this.nextTickStates = [];
     this.clearGraphics();
+    this.clearAllLabelTexts();
     for (const timeline of this.playerTimelines) {
       delete timeline._releasedAction;
+    }
+  }
+
+  clearAllLabelTexts() {
+    for (const timeline of this.playerTimelines) {
+      for (const action of timeline.actions) {
+        if (action._labelText) {
+          action._labelText.destroy();
+          action._labelText = null;
+        }
+      }
     }
   }
 
@@ -252,6 +264,31 @@ export default class AnimationRunner {
       const actionStart = action._effectiveStart;
       const actionEnd = actionStart + (action.duration || 0);
 
+      if (action.action === "label") {
+        if (tickIndex < actionStart) {
+          if (idx + 1 < actions.length && actions[idx + 1]._effectiveStart == null) {
+            actions[idx + 1]._effectiveStart = tickIndex + (actions[idx + 1].delay || 0);
+          }
+          break;
+        }
+        if (tickIndex < actionEnd) {
+          const elapsed = tickIndex - actionStart;
+          const t = elapsed / action.duration;
+          this.executeActionTick(action, player, t);
+          if (idx + 1 < actions.length && actions[idx + 1]._effectiveStart == null) {
+            actions[idx + 1]._effectiveStart = tickIndex + (actions[idx + 1].delay || 0);
+          }
+          return;
+        }
+        this.finalizeAction(action, player);
+        idx++;
+        timeline.currentActionIdx = idx;
+        if (idx < actions.length && actions[idx]._effectiveStart == null) {
+          actions[idx]._effectiveStart = tickIndex + (actions[idx].delay || 0);
+        }
+        continue;
+      }
+
       if (tickIndex < actionStart) {
         break;
       }
@@ -346,24 +383,21 @@ export default class AnimationRunner {
         }
         return true;
       }
-      case "shoot": {
-        if (!action.target) return false;
-        if (!action._startPos) {
-          if (!this.ball || this.ball.carrier !== player) return false;
-          action._startPos = { x: this.ball.fieldX, y: this.ball.fieldY };
-        }
-        const startPos = action._startPos;
-        const eased = this.easeLinear(Math.min(t, 1));
-        const pos = {
-          x: startPos.x + (action.target.x - startPos.x) * eased,
-          y: startPos.y + (action.target.y - startPos.y) * eased,
-        };
-        if (layout) {
-          const screen = toScreen(layout, pos);
-          this.ball.setPosition(screen.x, screen.y);
-          this.ball.fieldX = pos.x;
-          this.ball.fieldY = pos.y;
-          this.ball.detach();
+      case "label": {
+        if (!action.text) return false;
+        const screenPos = toScreen(layout, { x: player.fieldX, y: player.fieldY });
+        if (!action._labelText) {
+          action._labelText = this.scene.add.text(screenPos.x, screenPos.y - 60, action.text, {
+            fontFamily: "Arial, sans-serif",
+            fontSize: "45px",
+            fontStyle: "bold",
+            color: "#ffffff",
+            align: "center",
+            stroke: "#000000",
+            strokeThickness: 6,
+          }).setOrigin(0.5, 1).setDepth(100);
+        } else {
+          action._labelText.setPosition(screenPos.x, screenPos.y - 60);
         }
         return true;
       }
@@ -393,6 +427,13 @@ export default class AnimationRunner {
           this.ball.fieldX = action.target.x;
           this.ball.fieldY = action.target.y;
           this.ball.detach();
+        }
+        break;
+      }
+      case "label": {
+        if (action._labelText) {
+          action._labelText.destroy();
+          action._labelText = null;
         }
         break;
       }
