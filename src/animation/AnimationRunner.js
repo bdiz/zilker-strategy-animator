@@ -267,7 +267,7 @@ export default class AnimationRunner {
             idx++;
             timeline.currentActionIdx = idx;
             if (idx < actions.length) {
-              actions[idx]._effectiveStart = Math.max(actions[idx].delay || 0, tickIndex);
+              actions[idx]._effectiveStart = tickIndex + (actions[idx].delay || 0);
             }
             continue;
           }
@@ -286,7 +286,7 @@ export default class AnimationRunner {
           idx++;
           timeline.currentActionIdx = idx;
           if (idx < actions.length) {
-            actions[idx]._effectiveStart = Math.max(actions[idx].delay || 0, tickIndex);
+            actions[idx]._effectiveStart = tickIndex + (actions[idx].delay || 0);
           }
         } else if (this.ball && this.ball.carrier === player) {
           action._effectiveStart = tickIndex + (action.delay || 0);

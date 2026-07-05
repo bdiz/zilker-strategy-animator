@@ -29,7 +29,7 @@ export default class PlayInterpreter {
       const actions = group.actions || [];
       let effectiveStart = 0;
       for (const action of actions) {
-        effectiveStart = Math.max(action.delay || 0, effectiveStart);
+        effectiveStart = effectiveStart + (action.delay || 0);
         const effectiveEnd = effectiveStart + (action.duration || 0);
         if (effectiveEnd > max) max = effectiveEnd;
         effectiveStart = effectiveEnd;
