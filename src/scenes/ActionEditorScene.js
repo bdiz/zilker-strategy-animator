@@ -618,7 +618,7 @@ export default class ActionEditorScene extends Phaser.Scene {
   }
 
   hitTestAction(px, py) {
-    const HIT_THRESHOLD = 44;
+    const HIT_THRESHOLD = 22;
     for (const zone of this.actionHitZones) {
       for (const seg of zone.segments) {
         const d = this.pointToSegmentDist(px, py, seg.x1, seg.y1, seg.x2, seg.y2);

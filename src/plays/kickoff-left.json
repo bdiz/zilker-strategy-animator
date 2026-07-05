@@ -1,0 +1,209 @@
+{
+  "name": "Kickoff (left)",
+  "formation": "kickoff",
+  "placement": "FWD",
+  "commands": [
+    {
+      "player": "CM",
+      "actions": [
+        {
+          "action": "pass",
+          "_ballStart": {
+            "x": 154.42605683788062,
+            "y": 328.46015903909296
+          },
+          "target": {
+            "x": 62.9,
+            "y": 285.4
+          },
+          "duration": 8,
+          "delay": 0
+        },
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 155,
+              "y": 342
+            },
+            {
+              "x": 123.6,
+              "y": 339.2
+            },
+            {
+              "x": 53.5,
+              "y": 308.3
+            },
+            {
+              "x": 43,
+              "y": 296.8
+            },
+            {
+              "x": 33.1,
+              "y": 268.1
+            },
+            {
+              "x": 31.4,
+              "y": 233.3
+            }
+          ],
+          "duration": 17,
+          "delay": 2
+        }
+      ]
+    },
+    {
+      "player": "LB",
+      "actions": [
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 115,
+              "y": 397
+            },
+            {
+              "x": 112.2,
+              "y": 381.6
+            }
+          ],
+          "duration": 12,
+          "delay": 12
+        }
+      ]
+    },
+    {
+      "player": "RB",
+      "actions": [
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 196,
+              "y": 392
+            },
+            {
+              "x": 193.2,
+              "y": 365.5
+            }
+          ],
+          "duration": 13,
+          "delay": 12
+        }
+      ]
+    },
+    {
+      "player": "LM",
+      "actions": [
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 22,
+              "y": 271
+            },
+            {
+              "x": 34.1,
+              "y": 279.8
+            },
+            {
+              "x": 60.1,
+              "y": 283.1
+            }
+          ],
+          "duration": 4,
+          "delay": 12
+        },
+        {
+          "action": "pass",
+          "_ballStart": {
+            "x": 73.59062017749036,
+            "y": 282.30212016911804
+          },
+          "target": {
+            "x": 147,
+            "y": 203.4
+          },
+          "duration": 15,
+          "delay": 0
+        },
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 60.1,
+              "y": 283.1
+            },
+            {
+              "x": 120.2,
+              "y": 294.2
+            },
+            {
+              "x": 140.1,
+              "y": 292
+            }
+          ],
+          "duration": 8,
+          "delay": 0
+        }
+      ]
+    },
+    {
+      "player": "RM",
+      "actions": [
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 319,
+              "y": 269
+            },
+            {
+              "x": 256.1,
+              "y": 237.6
+            }
+          ],
+          "duration": 16,
+          "delay": 12
+        }
+      ]
+    },
+    {
+      "player": "FWD",
+      "actions": [
+        {
+          "action": "pass",
+          "_ballStart": {
+            "x": 174.82794069894302,
+            "y": 250.1061787980264
+          },
+          "target": {
+            "x": 157.2,
+            "y": 340
+          },
+          "duration": 8,
+          "delay": 5
+        },
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 179,
+              "y": 263
+            },
+            {
+              "x": 171.3,
+              "y": 218.3
+            },
+            {
+              "x": 152,
+              "y": 190.7
+            }
+          ],
+          "duration": 15,
+          "delay": 8
+        }
+      ]
+    }
+  ]
+}
