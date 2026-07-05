@@ -1,0 +1,143 @@
+{
+  "name": "Goal kick (right)",
+  "formation": "goalKick",
+  "placement": "CM",
+  "commands": [
+    {
+      "player": "CM",
+      "actions": [
+        {
+          "action": "pass",
+          "target": {
+            "x": 268.2,
+            "y": 489
+          },
+          "duration": 8,
+          "delay": 5
+        },
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 171,
+              "y": 485
+            },
+            {
+              "x": 203,
+              "y": 492.7
+            }
+          ],
+          "duration": 3,
+          "delay": 5
+        }
+      ]
+    },
+    {
+      "player": "LB",
+      "actions": [
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 70,
+              "y": 505
+            },
+            {
+              "x": 116.9,
+              "y": 498.9
+            },
+            {
+              "x": 149.4,
+              "y": 483.5
+            }
+          ],
+          "duration": 8,
+          "delay": 5
+        }
+      ]
+    },
+    {
+      "player": "LM",
+      "actions": [
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 52,
+              "y": 352
+            },
+            {
+              "x": 186.6,
+              "y": 392.3
+            },
+            {
+              "x": 204.3,
+              "y": 392.3
+            }
+          ],
+          "duration": 14,
+          "delay": 5
+        }
+      ]
+    },
+    {
+      "player": "RM",
+      "actions": [
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 288,
+              "y": 350
+            },
+            {
+              "x": 325,
+              "y": 371
+            }
+          ],
+          "duration": 4,
+          "delay": 5
+        },
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 325,
+              "y": 371
+            },
+            {
+              "x": 332.1,
+              "y": 394.7
+            }
+          ],
+          "duration": 3,
+          "delay": 5
+        }
+      ]
+    },
+    {
+      "player": "FWD",
+      "actions": [
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 173,
+              "y": 270
+            },
+            {
+              "x": 217.7,
+              "y": 285.4
+            },
+            {
+              "x": 261.8,
+              "y": 286
+            }
+          ],
+          "duration": 8,
+          "delay": 5
+        }
+      ]
+    }
+  ]
+}

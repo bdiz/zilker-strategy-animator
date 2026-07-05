@@ -29,8 +29,9 @@ export const PLAYER_IDS = ["GK", "CM", "LB", "RB", "LM", "RM", "FWD"];
 import offensive from './formations/offensive.json';
 import goalKick from './formations/goal-kick.json';
 import kickoff from './formations/kickoff.json';
+import cornerRight from './formations/corner-right.json';
 
-export const FORMATIONS = { kickoff, offensive, goalKick };
+export const FORMATIONS = { kickoff, offensive, goalKick, cornerRight };
 
 export const PLAYER_RADIUS = 16;
 export const BALL_RADIUS = 15;
