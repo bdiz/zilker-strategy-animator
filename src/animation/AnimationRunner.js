@@ -362,7 +362,8 @@ export default class AnimationRunner {
         }
         return true;
       }
-      case "pass": {
+      case "pass":
+      case "shoot": {
         if (!action.target) return false;
         if (!action._startPos) {
           if (!this.ball || this.ball.carrier !== player) return false;
