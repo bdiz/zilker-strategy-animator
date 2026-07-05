@@ -35,6 +35,6 @@ export default class PlayInterpreter {
         effectiveStart = effectiveEnd;
       }
     }
-    return max;
+    return max + 1;
   }
 }

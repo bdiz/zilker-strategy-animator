@@ -221,10 +221,11 @@ export default class AnimationRunner {
       if (timeline._releasedAction) {
         const { action, actionStart } = timeline._releasedAction;
         const actionEnd = actionStart + (action.duration || 0);
-        if (tickIndex < actionEnd) {
-          const t = (tickIndex - actionStart) / action.duration;
+        if (tickIndex <= actionEnd) {
+          const t = Math.min(1, (tickIndex - actionStart) / action.duration);
           this.executeActionTick(action, timeline.player, t);
-        } else {
+        }
+        if (tickIndex >= actionEnd) {
           this.finalizeAction(action, timeline.player);
           this._passShootPlayers.add(timeline.player);
           delete timeline._releasedAction;
