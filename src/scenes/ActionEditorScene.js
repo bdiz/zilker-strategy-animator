@@ -266,7 +266,13 @@ export default class ActionEditorScene extends Phaser.Scene {
     });
 
     this.input.on("pointermove", (pointer) => {
-      this._pointerMoved = true;
+      if (this._pointerDownPos) {
+        const dx = pointer.x - this._pointerDownPos.x;
+        const dy = pointer.y - this._pointerDownPos.y;
+        if (Math.sqrt(dx * dx + dy * dy) > 10) {
+          this._pointerMoved = true;
+        }
+      }
       if (this.previewMode) return;
       const hit = this.hitTestAction(pointer.x, pointer.y);
       if (hit !== this._hoveredZone) {
@@ -277,11 +283,12 @@ export default class ActionEditorScene extends Phaser.Scene {
 
     this.input.on("pointerup", (pointer) => {
       if (this.previewMode) return;
-      if (this._pointerMoved) return;
       if (!this._pointerDownPos) return;
       const dx = pointer.x - this._pointerDownPos.x;
       const dy = pointer.y - this._pointerDownPos.y;
-      if (Math.sqrt(dx * dx + dy * dy) > 6) return;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const elapsed = pointer.getDuration();
+      if (dist > 15 && elapsed > 200) return;
 
       const hit = this.hitTestAction(pointer.x, pointer.y);
       if (hit) {
