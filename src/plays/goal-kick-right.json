@@ -29,6 +29,15 @@
           ],
           "duration": 3,
           "delay": 5
+        },
+        {
+          "action": "pass",
+          "target": {
+            "x": 269.3,
+            "y": 481.8
+          },
+          "duration": 8,
+          "delay": 5
         }
       ]
     },
@@ -57,6 +66,71 @@
       ]
     },
     {
+      "player": "RB",
+      "actions": [
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 269,
+              "y": 507
+            },
+            {
+              "x": 269.6,
+              "y": 483.3
+            }
+          ],
+          "duration": 6,
+          "delay": 10
+        },
+        {
+          "action": "label",
+          "text": "Option 1",
+          "duration": 15,
+          "delay": 5
+        },
+        {
+          "action": "pass",
+          "target": {
+            "x": 260.6,
+            "y": 286.7
+          },
+          "duration": 8,
+          "delay": 5
+        },
+        {
+          "action": "label",
+          "text": "Option 2",
+          "duration": 25,
+          "delay": 15
+        },
+        {
+          "action": "pass",
+          "target": {
+            "x": 333.4,
+            "y": 393.2
+          },
+          "duration": 8,
+          "delay": 5
+        },
+        {
+          "action": "label",
+          "text": "Option 3",
+          "duration": 25,
+          "delay": 15
+        },
+        {
+          "action": "pass",
+          "target": {
+            "x": 237.9,
+            "y": 388.8
+          },
+          "duration": 8,
+          "delay": 5
+        }
+      ]
+    },
+    {
       "player": "LM",
       "actions": [
         {
@@ -77,6 +151,30 @@
           ],
           "duration": 14,
           "delay": 5
+        },
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 204.3,
+              "y": 392.3
+            },
+            {
+              "x": 237.4,
+              "y": 383.5
+            }
+          ],
+          "duration": 3,
+          "delay": 117
+        },
+        {
+          "action": "pass",
+          "target": {
+            "x": 324.8,
+            "y": 326.7
+          },
+          "duration": 8,
+          "delay": 1
         }
       ]
     },
@@ -112,6 +210,30 @@
           ],
           "duration": 3,
           "delay": 5
+        },
+        {
+          "action": "pass",
+          "target": {
+            "x": 273.1,
+            "y": 480.5
+          },
+          "duration": 2,
+          "delay": 10
+        },
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 332.1,
+              "y": 394.7
+            },
+            {
+              "x": 324.4,
+              "y": 288.8
+            }
+          ],
+          "duration": 10,
+          "delay": 37
         }
       ]
     },
@@ -136,6 +258,15 @@
           ],
           "duration": 8,
           "delay": 5
+        },
+        {
+          "action": "pass",
+          "target": {
+            "x": 270.9,
+            "y": 480.9
+          },
+          "duration": 2,
+          "delay": 10
         }
       ]
     }

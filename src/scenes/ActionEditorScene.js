@@ -94,6 +94,7 @@ export default class ActionEditorScene extends Phaser.Scene {
       window.__pendingActionEditorPlay = null;
       this.loadPlayData(pending);
     } else {
+      this.originalPlayName = "Custom Play";
       this.setFormation("offensive");
     }
 
@@ -214,6 +215,7 @@ export default class ActionEditorScene extends Phaser.Scene {
   }
 
   loadPlayData(playData) {
+    this.originalPlayName = playData.name || "Custom Play";
     this.setFormation(playData.formation);
 
     this.playerActions = {
@@ -754,7 +756,7 @@ export default class ActionEditorScene extends Phaser.Scene {
       .map(([player, actions]) => ({ player, actions }));
 
     const play = {
-      name: "Custom Play",
+      name: this.originalPlayName || "Custom Play",
       formation: this.formationName,
       placement: this.placementCarrier || null,
       commands,
