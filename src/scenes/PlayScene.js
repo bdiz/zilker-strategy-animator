@@ -5,6 +5,13 @@ import PlayInterpreter from "../animation/PlayInterpreter.js";
 import allPlays from "../plays/index.js";
 import AnimationRunner from "../animation/AnimationRunner.js";
 
+let _userPosition = null;
+let _userName = "";
+
+export function getUserSelection() {
+  return { position: _userPosition, name: _userName };
+}
+
 export default class PlayScene extends Phaser.Scene {
   constructor() {
     super("PlayScene");
@@ -37,6 +44,7 @@ export default class PlayScene extends Phaser.Scene {
       this.animationRunner.players = this.players;
       this.animationRunner.ball = this.ball;
     }
+    this.applyUserSelection(_userPosition, _userName);
   }
 
   createPlayers() {
@@ -61,12 +69,18 @@ export default class PlayScene extends Phaser.Scene {
     const interpreter = new PlayInterpreter(playData);
     this.animationRunner.loadPlay(interpreter);
 
+    this.applyUserSelection(_userPosition, _userName);
+
     if (this.onPlayChange) {
       this.onPlayChange(index, playData.name);
     }
-    if (this.onTickChange) {
-      this.onTickChange(0, this.animationRunner.maxTicks, "");
-    }
+  }
+
+  applyUserSelection(position, name) {
+    if (!this.players) return;
+    _userPosition = position;
+    _userName = name || "";
+    Object.values(this.players).forEach(p => p.setUserSelection(_userPosition, _userName));
   }
 
   play() {

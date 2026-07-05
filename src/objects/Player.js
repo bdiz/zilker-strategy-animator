@@ -44,6 +44,17 @@ export default class Player extends Phaser.GameObjects.Container {
     this.label.y = diameter / 2 + 4;
   }
 
+  setUserSelection(position, name) {
+    if (position === this.playerId) {
+      this.sprite.setTexture("smiley-pink");
+      this.label.setText(name || this.playerId);
+    } else {
+      this.sprite.setTexture("smiley");
+      this.label.setText(this.playerId);
+    }
+    this.refreshSpriteScale();
+  }
+
   setFieldPosition(fieldX, fieldY) {
     this.prevFieldX = this.fieldX;
     this.prevFieldY = this.fieldY;

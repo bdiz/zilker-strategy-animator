@@ -2,6 +2,7 @@ import allPlays from "../plays/index.js";
 import { DEV_MODE, FORMATIONS } from "../config.js";
 import EditorControls from "./EditorControls.js";
 import { initRouter, navigate, toSlug, playSlug, formationSlug, lookupSlug } from "./Router.js";
+import { getUserSelection } from "../scenes/PlayScene.js";
 
 export default class PlayControls {
   constructor(scene) {
@@ -17,8 +18,10 @@ export default class PlayControls {
     this.playIcon = document.getElementById("play-icon");
     this.speedTrigger = document.getElementById("speed-trigger");
     this.speedOptions = document.getElementById("speed-options");
-    this.stepLabel = document.getElementById("step-label");
     this.progressSlider = document.getElementById("progress-slider");
+    this.positionTrigger = document.getElementById("position-trigger");
+    this.positionOptions = document.getElementById("position-options");
+    this.playerNameInput = document.getElementById("player-name-input");
 
     this.zilkerClicks = 0;
     this._editorButtonsCreated = false;
@@ -35,6 +38,7 @@ export default class PlayControls {
 
     this.setupPlaylist();
     this.setupControls();
+    this.setupMyPosition();
 
     if (DEV_MODE) {
       this.setupEditorButtons();
@@ -42,11 +46,9 @@ export default class PlayControls {
 
     scene.onPlayChange = (index, name) => {
       this.highlightPlay(index);
-      this.stepLabel.textContent = name;
     };
 
     scene.animationRunner.callbacks.onTickChange = (tick, maxTicks, label) => {
-      this.stepLabel.textContent = label;
       this.updateProgress(tick, maxTicks);
     };
     scene.animationRunner.callbacks.onPlayEnd = () => {
@@ -302,7 +304,6 @@ export default class PlayControls {
       if (!runner.paused) {
         runner.stop();
         this.showPlayIcon();
-        this.stepLabel.textContent = "Paused";
       } else {
         const maxTicks = runner.maxTicks;
         if (runner.tickIndex >= maxTicks && maxTicks > 0) {
@@ -350,6 +351,47 @@ export default class PlayControls {
       const target = parseInt(this.progressSlider.value, 10);
       this.showPlayIcon();
       this.scene.seekTo(target);
+    });
+  }
+
+  setupMyPosition() {
+    const initial = getUserSelection();
+    if (initial.position) {
+      this.positionTrigger.textContent = initial.position;
+      this.positionOptions.querySelector(`[data-value="${initial.position}"]`).classList.add("selected");
+      this.positionOptions.querySelector('[data-value=""]').classList.remove("selected");
+      if (initial.name) {
+        this.playerNameInput.value = initial.name;
+      }
+      this.playerNameInput.style.display = "block";
+    }
+
+    this.positionTrigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.positionOptions.classList.toggle("open");
+    });
+
+    this.positionOptions.querySelectorAll("button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const val = btn.dataset.value;
+        this.positionTrigger.textContent = val || "None";
+        this.positionOptions.querySelectorAll("button").forEach((b) => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        this.positionOptions.classList.remove("open");
+        this.playerNameInput.style.display = val ? "block" : "none";
+        if (!val) {
+          this.playerNameInput.value = "";
+        }
+        this.scene.applyUserSelection(val || null, this.playerNameInput.value);
+      });
+    });
+
+    document.addEventListener("click", () => {
+      this.positionOptions.classList.remove("open");
+    });
+
+    this.playerNameInput.addEventListener("input", () => {
+      this.scene.applyUserSelection(this.positionTrigger.textContent === "None" ? null : this.positionTrigger.textContent, this.playerNameInput.value);
     });
   }
 

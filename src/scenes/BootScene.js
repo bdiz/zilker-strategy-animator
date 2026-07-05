@@ -9,17 +9,12 @@ export default class BootScene extends Phaser.Scene {
     this.load.image("ball", `${import.meta.env.BASE_URL}soccer-ball.png`);
   }
 
-  create() {
-    this.generateSmileyTexture();
-    this.scene.start("FieldScene");
-  }
-
-  generateSmileyTexture() {
+  generateSmileyTexture(color, key) {
     const r = 18;
     const d = r * 2 + 2;
     const g = this.add.graphics();
 
-    g.fillStyle(0xffdd44, 1);
+    g.fillStyle(color, 1);
     g.fillCircle(r + 1, r + 1, r);
 
     g.lineStyle(2, 0x000000, 1);
@@ -34,7 +29,13 @@ export default class BootScene extends Phaser.Scene {
     g.arc(r + 1, r + 1 + 2, 7, Phaser.Math.DegToRad(20), Phaser.Math.DegToRad(160), false);
     g.strokePath();
 
-    g.generateTexture("smiley", d, d);
+    g.generateTexture(key, d, d);
     g.destroy();
+  }
+
+  create() {
+    this.generateSmileyTexture(0xffdd44, "smiley");
+    this.generateSmileyTexture(0xff69b4, "smiley-pink");
+    this.scene.start("FieldScene");
   }
 }
