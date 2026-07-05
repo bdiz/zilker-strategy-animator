@@ -1,0 +1,202 @@
+{
+  "name": "Offensive (left)",
+  "formation": "offensive",
+  "placement": "CM",
+  "commands": [
+    {
+      "player": "CM",
+      "actions": [
+        {
+          "action": "pass",
+          "target": {
+            "x": 53.8,
+            "y": 243.8
+          },
+          "duration": 8,
+          "delay": 5
+        },
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 121,
+              "y": 295
+            },
+            {
+              "x": 91.2,
+              "y": 288.4
+            },
+            {
+              "x": 66.9,
+              "y": 270.7
+            },
+            {
+              "x": 34.4,
+              "y": 233.2
+            },
+            {
+              "x": 27.8,
+              "y": 204
+            }
+          ],
+          "duration": 13,
+          "delay": 5
+        },
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 27.8,
+              "y": 204
+            },
+            {
+              "x": 58.7,
+              "y": 134.5
+            },
+            {
+              "x": 108.3,
+              "y": 76.6
+            }
+          ],
+          "duration": 14,
+          "delay": 106
+        }
+      ]
+    },
+    {
+      "player": "LM",
+      "actions": [
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 39,
+              "y": 205
+            },
+            {
+              "x": 46.7,
+              "y": 234.2
+            },
+            {
+              "x": 59.4,
+              "y": 242.5
+            },
+            {
+              "x": 104.1,
+              "y": 249.7
+            },
+            {
+              "x": 121.2,
+              "y": 242
+            }
+          ],
+          "duration": 10,
+          "delay": 10
+        },
+        {
+          "action": "label",
+          "text": "Option 1",
+          "duration": 10,
+          "delay": 10
+        },
+        {
+          "action": "pass",
+          "target": {
+            "x": 129.1,
+            "y": 147.3
+          },
+          "duration": 8,
+          "delay": 5
+        },
+        {
+          "action": "label",
+          "text": "Option 2",
+          "duration": 10,
+          "delay": 15
+        },
+        {
+          "action": "pass",
+          "target": {
+            "x": 221.8,
+            "y": 144.5
+          },
+          "duration": 8,
+          "delay": 10
+        },
+        {
+          "action": "label",
+          "text": "Option 3",
+          "duration": 15,
+          "delay": 20
+        },
+        {
+          "action": "pass",
+          "target": {
+            "x": 54.2,
+            "y": 142.3
+          },
+          "duration": 8,
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "player": "RM",
+      "actions": [
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 246,
+              "y": 202
+            },
+            {
+              "x": 204.6,
+              "y": 96.1
+            }
+          ],
+          "duration": 10,
+          "delay": 85
+        },
+        {
+          "action": "pass",
+          "target": {
+            "x": 120.2,
+            "y": 242.9
+          },
+          "duration": 2,
+          "delay": 15
+        },
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 204.6,
+              "y": 96.1
+            },
+            {
+              "x": 244.3,
+              "y": 199.3
+            }
+          ],
+          "duration": 2,
+          "delay": 1
+        }
+      ]
+    },
+    {
+      "player": "FWD",
+      "actions": [
+        {
+          "action": "pass",
+          "target": {
+            "x": 120.3,
+            "y": 243.3
+          },
+          "duration": 2,
+          "delay": 15
+        }
+      ]
+    }
+  ]
+}

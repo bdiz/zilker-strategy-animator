@@ -30,8 +30,9 @@ import offensive from './formations/offensive.json';
 import goalKick from './formations/goal-kick.json';
 import kickoff from './formations/kickoff.json';
 import cornerRight from './formations/corner-right.json';
+import teamGarret from './formations/team-garret.json';
 
-export const FORMATIONS = { kickoff, offensive, goalKick, cornerRight };
+export const FORMATIONS = { kickoff, offensive, goalKick, cornerRight, teamGarret };
 
 export const PLAYER_RADIUS = 16;
 export const BALL_RADIUS = 15;
