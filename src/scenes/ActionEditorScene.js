@@ -463,12 +463,10 @@ export default class ActionEditorScene extends Phaser.Scene {
 
     if (this.dragBallPrevCarrier) {
       const delay = 5;
-      const ballStart = { x: ball.fieldX, y: ball.fieldY };
 
       if (inGoal) {
         this.playerActions[this.dragBallPrevCarrier].push({
           action: "shoot",
-          _ballStart: ballStart,
           target: {
             x: Math.round(f.x * 10) / 10,
             y: ball.y < layout.offsetY + (FIELD.HEIGHT * layout.scale) / 2 ? 0 : FIELD.HEIGHT,
@@ -479,7 +477,6 @@ export default class ActionEditorScene extends Phaser.Scene {
       } else {
         this.playerActions[this.dragBallPrevCarrier].push({
           action: "pass",
-          _ballStart: ballStart,
           target: {
             x: Math.round(f.x * 10) / 10,
             y: Math.round(f.y * 10) / 10,
@@ -774,11 +771,6 @@ export default class ActionEditorScene extends Phaser.Scene {
   }
 
   getPassShootOrigin(playerId, currentActionIndex) {
-    const a = this.playerActions[playerId]?.[currentActionIndex];
-    if (a && a._ballStart) {
-      return { ...a._ballStart };
-    }
-
     const formation = FORMATIONS[this.formationName];
     const startPos = formation && formation[playerId]
       ? { x: formation[playerId].x, y: formation[playerId].y }
