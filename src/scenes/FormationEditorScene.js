@@ -4,6 +4,7 @@ import {
   FIELD, PLAYER_IDS, FORMATIONS,
   getLayout, setLayout, computeLayout, toField, toScreen,
 } from "../config.js";
+import { getUserSelection, setUserSelection } from "../userSelection.js";
 
 const BOTTOM_LEFT_X = 28;
 
@@ -29,6 +30,9 @@ export default class FormationEditorScene extends Phaser.Scene {
     this.createPlayers();
     this.setupDrag();
 
+    const { position, name } = getUserSelection();
+    this.applyUserSelection(position, name);
+
     if (window.__pendingFormationName) {
       this.setFormation(window.__pendingFormationName);
       window.__pendingFormationName = null;
@@ -46,6 +50,11 @@ export default class FormationEditorScene extends Phaser.Scene {
       if (p) p.setFieldPosition(pos.x, pos.y);
     });
     this.logFormation();
+  }
+
+  applyUserSelection(position, name) {
+    setUserSelection(position, name);
+    Object.values(this.players).forEach(p => p.setUserSelection(position, name));
   }
 
   handleResize() {

@@ -7,6 +7,7 @@ import {
   FIELD, PLAYER_IDS, FORMATIONS, RUN_SPEED, TICK_MS, PLAYER_RADIUS,
   getLayout, setLayout, computeLayout, toField, toScreen,
 } from "../config.js";
+import { getUserSelection, setUserSelection } from "../userSelection.js";
 
 const BALL_DRAG_OFFSET = { x: 0, y: -50 };
 const PATH_SAMPLE_DIST = 15;
@@ -88,6 +89,9 @@ export default class ActionEditorScene extends Phaser.Scene {
     this.createPlayers();
     this.createBall();
     this.setupDrag();
+
+    const { position, name } = getUserSelection();
+    this.applyUserSelection(position, name);
 
     const pending = window.__pendingActionEditorPlay;
     if (pending) {
@@ -212,6 +216,13 @@ export default class ActionEditorScene extends Phaser.Scene {
       const p = this.players[id];
       if (p) p.setFieldPosition(pos.x, pos.y);
     });
+    const { position, name: userName } = getUserSelection();
+    this.applyUserSelection(position, userName);
+  }
+
+  applyUserSelection(position, name) {
+    setUserSelection(position, name);
+    Object.values(this.players).forEach(p => p.setUserSelection(position, name));
   }
 
   loadPlayData(playData) {

@@ -2,7 +2,7 @@ import allPlays from "../plays/index.js";
 import { DEV_MODE, FORMATIONS } from "../config.js";
 import EditorControls from "./EditorControls.js";
 import { initRouter, navigate, toSlug, playSlug, formationSlug, lookupSlug } from "./Router.js";
-import { getUserSelection } from "../scenes/PlayScene.js";
+import { getUserSelection } from "../userSelection.js";
 
 export default class PlayControls {
   constructor(scene) {
@@ -382,7 +382,7 @@ export default class PlayControls {
         if (!val) {
           this.playerNameInput.value = "";
         }
-        this.scene.applyUserSelection(val || null, this.playerNameInput.value);
+        this._getTargetScene().applyUserSelection(val || null, this.playerNameInput.value);
       });
     });
 
@@ -391,7 +391,7 @@ export default class PlayControls {
     });
 
     this.playerNameInput.addEventListener("input", () => {
-      this.scene.applyUserSelection(this.positionTrigger.textContent === "None" ? null : this.positionTrigger.textContent, this.playerNameInput.value);
+      this._getTargetScene().applyUserSelection(this.positionTrigger.textContent === "None" ? null : this.positionTrigger.textContent, this.playerNameInput.value);
     });
   }
 
@@ -455,5 +455,16 @@ export default class PlayControls {
     this.scene.scene.resume();
     this.scene.ensurePlayers();
     this.scene.animationRunner.stop();
+  }
+
+  _getTargetScene() {
+    const game = this.scene.game;
+    if (game.scene.isActive("FormationEditorScene")) {
+      return game.scene.getScene("FormationEditorScene");
+    }
+    if (game.scene.isActive("ActionEditorScene")) {
+      return game.scene.getScene("ActionEditorScene");
+    }
+    return this.scene;
   }
 }
