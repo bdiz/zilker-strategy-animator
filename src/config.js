@@ -59,8 +59,10 @@ export function computeLayout(canvasW, canvasH) {
   const overlayPad = 60;
   const visH = canvasH - overlayPad;
   const margin = gd + 8;
+  const hMargin = 18;
+  const effW = fw + hMargin * 2;
   const effH = fh + margin * 2;
-  const scale = Math.min(canvasW / fw, visH / effH);
+  const scale = Math.min(canvasW / effW, visH / effH);
   const offsetX = (canvasW - fw * scale) / 2;
   const offsetY = (visH - fh * scale) / 2;
   return { scale, offsetX, offsetY, canvasW, canvasH };
