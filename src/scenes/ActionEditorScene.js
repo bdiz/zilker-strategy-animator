@@ -350,9 +350,15 @@ export default class ActionEditorScene extends Phaser.Scene {
       if (gameObject.playerId) {
         const layout = getLayout();
         if (layout) {
+          const prevX = gameObject.fieldX;
+          const prevY = gameObject.fieldY;
           const f = toField(layout, dragX, dragY);
           gameObject.fieldX = f.x;
           gameObject.fieldY = f.y;
+          gameObject.prevFieldX = prevX;
+          gameObject.prevFieldY = prevY;
+          gameObject.velocityX = f.x - prevX;
+          gameObject.velocityY = f.y - prevY;
           this.recordPathPoint(gameObject, dragX, dragY);
           if (this.ball && !this.ball.carrier) {
             const threshold = PLAYER_RADIUS * 2 * 0.44 * layout.scale;
