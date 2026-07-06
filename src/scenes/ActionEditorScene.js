@@ -501,7 +501,7 @@ export default class ActionEditorScene extends Phaser.Scene {
             y: ball.y < layout.offsetY + (FIELD.HEIGHT * layout.scale) / 2 ? 0 : FIELD.HEIGHT,
           },
           duration: 8,
-          delay,
+          delay: 2,
         });
       } else {
         this.playerActions[this.dragBallPrevCarrier].push({
