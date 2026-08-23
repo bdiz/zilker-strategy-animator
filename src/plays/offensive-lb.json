@@ -1,0 +1,179 @@
+{
+  "name": "Offense from LB",
+  "formation": "offensiveLb",
+  "placement": "LB",
+  "commands": [
+    {
+      "player": "CM",
+      "actions": [
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 103,
+              "y": 300
+            },
+            {
+              "x": 96.9,
+              "y": 329.7
+            },
+            {
+              "x": 78.2,
+              "y": 349
+            }
+          ],
+          "duration": 11,
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "player": "LB",
+      "actions": [
+        {
+          "action": "pass",
+          "target": {
+            "x": 16.3,
+            "y": 240.4
+          },
+          "duration": 7,
+          "delay": 2
+        },
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 25,
+              "y": 355
+            },
+            {
+              "x": 15.3,
+              "y": 199.7
+            }
+          ],
+          "duration": 15,
+          "delay": 5
+        },
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 15.3,
+              "y": 200.3
+            },
+            {
+              "x": 15.9,
+              "y": 179.8
+            }
+          ],
+          "duration": 2,
+          "delay": 2
+        },
+        {
+          "action": "label",
+          "text": "Pass here",
+          "duration": 10,
+          "delay": 0
+        }
+      ]
+    },
+    {
+      "player": "LM",
+      "actions": [
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 9,
+              "y": 203
+            },
+            {
+              "x": 16.9,
+              "y": 232.7
+            },
+            {
+              "x": 76.8,
+              "y": 256.9
+            },
+            {
+              "x": 99.2,
+              "y": 255.1
+            }
+          ],
+          "duration": 12,
+          "delay": 7
+        },
+        {
+          "action": "pass",
+          "target": {
+            "x": 112.7,
+            "y": 254
+          },
+          "duration": 8,
+          "delay": 5
+        },
+        {
+          "action": "pass",
+          "target": {
+            "x": 112.7,
+            "y": 254
+          },
+          "duration": 8,
+          "delay": 5
+        }
+      ]
+    },
+    {
+      "player": "RM",
+      "actions": [
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 188,
+              "y": 214
+            },
+            {
+              "x": 206.8,
+              "y": 189.8
+            }
+          ],
+          "duration": 3,
+          "delay": 49
+        },
+        {
+          "action": "label",
+          "text": "Or here",
+          "duration": 10,
+          "delay": 0
+        }
+      ]
+    },
+    {
+      "player": "FWD",
+      "actions": [
+        {
+          "action": "run",
+          "path": [
+            {
+              "x": 101,
+              "y": 133
+            },
+            {
+              "x": 100.4,
+              "y": 148.1
+            }
+          ],
+          "duration": 2,
+          "delay": 37
+        },
+        {
+          "action": "label",
+          "text": "Here",
+          "duration": 10,
+          "delay": 0
+        }
+      ]
+    }
+  ]
+}

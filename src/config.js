@@ -27,12 +27,13 @@ export const PLAYER_NAMES = {
 export const PLAYER_IDS = ["GK", "CM", "LB", "RB", "LM", "RM", "FWD"];
 
 import offensive from './formations/offensive.json';
+import offensiveLb from './formations/offensive-lb.json';
 import goalKick from './formations/goal-kick.json';
 import kickoff from './formations/kickoff.json';
 import cornerRight from './formations/corner-right.json';
 import teamGarret from './formations/team-garret.json';
 
-export const FORMATIONS = { kickoff, offensive, goalKick, cornerRight, teamGarret };
+export const FORMATIONS = { kickoff, offensive, offensiveLb, goalKick, cornerRight, teamGarret };
 
 export const PLAYER_RADIUS = 16;
 export const BALL_RADIUS = 15;
