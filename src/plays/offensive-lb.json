@@ -71,7 +71,7 @@
         },
         {
           "action": "label",
-          "text": "Pass here",
+          "text": "       Pass here",
           "duration": 10,
           "delay": 0
         }

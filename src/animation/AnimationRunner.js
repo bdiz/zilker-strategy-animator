@@ -390,7 +390,7 @@ export default class AnimationRunner {
         if (!action._labelText) {
           action._labelText = this.scene.add.text(screenPos.x, screenPos.y - 60, action.text, {
             fontFamily: "Arial, sans-serif",
-            fontSize: "45px",
+            fontSize: "25.625px",
             fontStyle: "bold",
             color: "#ffffff",
             align: "center",

@@ -48,7 +48,7 @@
         },
         {
           "action": "label",
-          "text": "Pass here",
+          "text": "       Pass here",
           "duration": 12,
           "delay": 5
         }
